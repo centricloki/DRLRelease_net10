@@ -1,0 +1,87 @@
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <div class="hero-unit">
+        <div class="brand">
+            <h1>Home</h1>
+        </div>
+    </div>
+    <div class="header-image" style="min-height:600px">
+        <div class="tabs">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab1">Production Version Users</a></li>
+                <li><a href="#tab2">Test Version Users</a></li>
+                <li><a href="#tab3">All Users</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="tab1" class="tab-pane active">
+                    <div class="production-page">
+                        <div class="title_left">
+                            <h4>Production Version : @ViewBag.LatestProductionVersion</h4>
+                        </div>
+                        <div class="title_right" style="padding-bottom:15px">
+                            <a id="btnProductionAssignVersion" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/assign.png" />Assign Version
+                            </a>
+                            <a id="btnProductionRefresh" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/refresh_icon.png" /> Refresh
+                            </a>
+                        </div>
+                        <div class="page-body">
+                            <div id="ProductionUserVersionList">
+                                <table id="tableProductionList" class="display" width="100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab2" class="tab-pane">
+                    <div class="test-page">
+                        <div class="title_left" style="width: auto !important;">
+                            <h4>Available Test Version : @ViewBag.LatestTestVersion</h4>
+                        </div>
+                        <div class="title_right" style="padding-bottom:15px">
+                            <a id="btnTestAssignVersion" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/assign.png" />Assign Version
+                            </a>
+                            <a id="btnTestRefresh" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/refresh_icon.png" /> Refresh
+                            </a>
+                        </div>
+                        <div class="page-body">
+                            <div id="TestUserVersionList">
+                                <table id="tableTestList" class="display" width="100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab3" class="tab-pane">
+                    <div class="test-page">
+                        <div class="title_left" style="width:auto !important">
+                            <h4>Available Active Version : @ViewBag.ActiveVersions</h4>
+                        </div>
+                        <div class="title_right" style="padding-bottom:15px">
+                            <a id="btnAllUserAssignVersion" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/assign.png" />Assign Version
+                            </a>
+                            <a id="btnAllUserRefresh" class="btn" href="javascript:void(0);">
+                                <img src="~/Images/refresh_icon.png" /> Refresh
+                            </a>
+                        </div>
+                        <div class="page-body">
+                            <div id="AllUserList">
+                                <table id="tableAllList" class="display" width="100%"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="UploadNewApp_dialog" class="web_dialog"></div>
+    <div id="divFilters_dialog" class="web_dialog"></div>
+    <div id="AssignVersion_dialog" class="web_dialog"></div>
+</div>
+

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>DRLRelease.Web</RootNamespace>
+    <AssemblyName>DRLRelease.Web</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Floating version so the first restore picks the latest 10.x. After it works, pin the exact version. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DRLRelease.Business\DRLRelease.Business.csproj" />
+    <ProjectReference Include="..\DRLRelease.Common\DRLRelease.Common.csproj" />
+    <ProjectReference Include="..\DRLRelease.DataModel\DRLRelease.DataModel.csproj" />
+    <ProjectReference Include="..\DRLRelease.Notification\DRLRelease.Notification.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="DRLRelease.Common/DRLRelease.Common.csproj" />
+  <Project Path="DRLRelease.DataModel/DRLRelease.DataModel.csproj" />
+  <Project Path="DRLRelease.Business/DRLRelease.Business.csproj" />
+  <Project Path="DRLRelease.Notification/DRLRelease.Notification.csproj" />
+  <Project Path="DRLRelease.Web/DRLRelease.Web.csproj" />
+</Solution>

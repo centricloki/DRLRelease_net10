@@ -1,0 +1,32 @@
+<script type="text/javascript">
+    function LogMeOut() {
+        $.ajax({
+            type: "POST",
+            url: _relativeBaseDirectory + "/Account/LogOff",
+            success: function (data) {
+                window.location.href = _relativeBaseDirectory + "/Account/Login";
+            }
+        })
+    }
+</script>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <text>
+        <div id="dvLogin" class="logtout">
+            @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <a href="javascript:document.getElementById('logoutForm').submit()" class="logtout_a">Log off</a>
+            }
+            <div class="clear">
+            </div>
+        </div>
+    </text>
+}
+else
+{
+    <ul>
+        @*<li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>*@
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}
