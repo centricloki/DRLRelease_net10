@@ -1,44 +1,27 @@
+using Serilog;
+
 namespace DRLRelease.Common
 {
-    // Same behaviour as before: one text file per day in <app root>\Error.
-    // Planned for a later release: replace with ILogger / Serilog.
-    public class ExceptionLog
+    public static class ExceptionLog
     {
-        private static readonly object _lock = new object();
-
-        public static void WriteLog(Exception e)
+        /// <summary>
+        /// Logs an exception using Serilog.
+        /// Signature remains unchanged so existing Business/Web layer calls require zero modifications.
+        /// </summary>
+        public static void WriteLog(Exception ex)
         {
-            var text = DateTime.Now + Environment.NewLine
-                     + e.Source + Environment.NewLine
-                     + e.Message + Environment.NewLine
-                     + e.TargetSite + Environment.NewLine
-                     + e.StackTrace + Environment.NewLine
-                     + (e.InnerException != null ? "[" + e.InnerException.Message + "]" + e.InnerException.StackTrace + Environment.NewLine : "")
-                     + Environment.NewLine;
-            Append(text);
+            if (ex == null) return;
+
+            // Serilog automatically captures the full stack trace and inner exceptions
+            Log.Error(ex, "Unhandled Exception occurred");
         }
 
-        public static void WriteLog(string errorMsg)
+        /// <summary>
+        /// Optional: Logs an informational message using Serilog.
+        /// </summary>
+        public static void WriteInfo(string message)
         {
-            Append(DateTime.Now + Environment.NewLine + errorMsg + Environment.NewLine + Environment.NewLine);
-        }
-
-        private static void Append(string text)
-        {
-            try
-            {
-                string dir = Path.Combine(CommonFunction.DirectoryPath, "Error");
-                string file = Path.Combine(dir, $"{DateTime.Now.Year}_{DateTime.Now.Month}_{DateTime.Now.Day}.log");
-                lock (_lock)
-                {
-                    Directory.CreateDirectory(dir);
-                    File.AppendAllText(file, text);
-                }
-            }
-            catch
-            {
-                // logging must never break the request
-            }
+            Log.Information(message);
         }
     }
 }

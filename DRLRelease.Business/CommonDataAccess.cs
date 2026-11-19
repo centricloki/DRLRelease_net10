@@ -87,7 +87,7 @@ namespace DRLRelease.Business
             => QueryText<AppVersion>("SELECT * FROM AppVersion");
 
         public List<AppVersion> GetVersionList()
-            => QueryText<AppVersion>("SELECT *, CONVERT(BIT,(CASE WHEN IsActive = 1 THEN 0 ELSE 1 END))  AS IsAction FROM AppVersion app");
+            => QueryText<AppVersion>("SELECT *, CONVERT(BIT, (CASE WHEN IsActive = 1 THEN 0 ELSE 1 END)) AS IsAction FROM AppVersion");
 
         public bool UpdateProductionAppVersion(int appVersionId, string whatsnew)
             => SpReturnsRows("sp_Release_UpdateProductionVersion", new { AppVersionID = appVersionId, WhatsNew = whatsnew });

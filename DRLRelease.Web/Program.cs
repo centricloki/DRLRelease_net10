@@ -6,8 +6,31 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Read log path from appsettings.json, with a safe fallback
+var logPath = builder.Configuration.GetValue<string>("Serilog:LogFilePath")
+              ?? Path.Combine(builder.Environment.ContentRootPath, "Logs", "log-.txt");
+
+// Ensure the directory exists (especially for local dev)
+Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+
+// 1. Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.File(
+        path: logPath,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+// 2. Tell ASP.NET Core to use Serilog instead of the default logger
+builder.Host.UseSerilog();
 
 // ExceptionLog writes to <content root>\Error (same as the old app).
 CommonFunction.DirectoryPath = builder.Environment.ContentRootPath;

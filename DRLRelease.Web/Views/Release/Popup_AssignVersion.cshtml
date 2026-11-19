@@ -1,0 +1,82 @@
+@model DRLRelease.Web.Models.AssignVersionModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Assign Version</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning">@Model.ErrorMessage</div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Selected Users:</label>
+        <p class="form-control-plaintext">@Model.UserNames</p>
+        <input type="hidden" name="userIdList" value="@Model.UserIDs" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Current Version:</label>
+        <p class="form-control-plaintext">@Model.CurrentVersion</p>
+        <input type="hidden" name="userCurrentVersionId" value="@Model.CurrentVersionId" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Assign New Version:</label>
+        @if (Model.AssignList != null && Model.AssignList.Any())
+        {
+            <select id="assignedVersionId" class="form-select" @(Model.IsDisabledButton ? "disabled" : "")>
+                <option value="">-- Select Version --</option>
+                @foreach (var item in Model.AssignList)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        }
+        else
+        {
+            <p class="text-danger">No versions available for assignment.</p>
+        }
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" id="btnSaveAssign" @(Model.IsDisabledButton ? "disabled" : "") onclick="SubmitAssignVersion()">Assign</button>
+</div>
+
+<script>
+    function SubmitAssignVersion() {
+        var assignedVersionId = $('#assignedVersionId').val();
+        if (!assignedVersionId) {
+            showMessage("Please select a version to assign.", true);
+            return;
+        }
+
+        var userIds = $('input[name="userIdList"]').val().split(' / ');
+        var currentVersionId = $('input[name="userCurrentVersionId"]').val();
+
+        $.ajax({
+            url: '/Release/SaveAssignVersion',
+            type: 'POST',
+            traditional: true,
+            data: {
+                assignedVersionId: assignedVersionId,
+                userIdList: userIds,
+                userCurrentVersionId: currentVersionId
+            },
+            success: function (response) {
+                if (response.success) {
+                    showMessage("Version assigned successfully.", false);
+                    $('#assignModal').modal('hide'); // Adjust modal ID to match your layout
+                    // Optional: Reload the user list DataTable here
+                } else {
+                    showMessage("Error: " + response.message, true);
+                }
+            },
+            error: function () {
+                showMessage("An error occurred while assigning the version.", true);
+            }
+        });
+    }
+</script>

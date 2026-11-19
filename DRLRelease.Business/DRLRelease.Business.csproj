@@ -5,9 +5,9 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Floating versions so the first restore picks the latest. After it works, pin the exact versions. -->
-    <PackageReference Include="Dapper" Version="2.*" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.*" />
+    <!-- Pinned to exact stable versions -->
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DRLRelease.DataModel\DRLRelease.DataModel.csproj" />
