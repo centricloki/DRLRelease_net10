@@ -74,6 +74,13 @@
     });
 
     function updatestatus(aapVersionId, status) {
+        // Find the specific link that was clicked
+        var $link = $('a[href="javascript:updatestatus(' + aapVersionId + ',' + status + ')"]');
+        var originalText = $link.text();
+
+        // Show inline loader on the link itself
+        $link.text('Saving...').css('pointer-events', 'none').css('opacity', '0.6');
+
         $.ajax({
             type: "POST",
             url: "/Release/UpdateAppVersion", // Fixed: removed _relativeBaseDirectory
@@ -87,7 +94,18 @@
                     BindList();
                 } else {
                     showMessage('Error: ' + data.message, true);
+                    // Revert text on error
+                    $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
                 }
+            },
+            error: function () {
+                showMessage("An error occurred while updating the status.", true);
+                // Revert text on error
+                $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
+            },
+            complete: function () {
+                // Ensure it reverts even on success (since BindList() redraws the table anyway)
+                $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
             }
         });
     }

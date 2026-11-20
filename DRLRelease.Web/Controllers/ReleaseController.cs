@@ -250,14 +250,10 @@ namespace DRLRelease.Web.Controllers
                     {
                         AssignedVersion = assignedVersionId,
                         CurrentVersion = userCurrentVersionId,
-                        NotificationCode = "", // Legacy placeholder
+                        NotificationCode = "",
                         UserID = userId
                     };
-
-                    // Save to database via Dapper
                     _common.SetUserAppVersion(data);
-
-                    // NOTE: Push Notification logic has been intentionally removed as requested.
                 }
                 isSuccessful = true;
             }

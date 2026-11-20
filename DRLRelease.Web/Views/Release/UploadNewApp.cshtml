@@ -1,5 +1,4 @@
 @model DRLRelease.Web.Models.UploadNewAppModel
-
 @{
     ViewData["Title"] = "UploadNewApp";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -52,7 +51,6 @@
                         <input id="btnSubmit" class="button" type="submit" value="Upload" />
                     </div>
                 </div>
-
             </div>
             <div class="uploadnewv-footer">
             </div>
@@ -100,7 +98,7 @@
 
         $(document).on("click", "#btnSubmit", function(e) {
             $('#fileUpPLIST').next().removeClass('field-validation-error').addClass('field-validation-valid').text("");
-            $('#fileUpIPA').next().removeClass('field-validation-error').addClass('field-validation-valid').text("");
+            $('#fileUpIPA').next().removeClass('field-validation-error').addClass('field-validation-valid').text "";
 
             var result = true;
 
@@ -132,6 +130,12 @@
 
         $("#fileUpPLIST").change(function() {
             checkfile('fileUpPLIST', 'xml');
+        });
+
+        // Add button loader on form submit
+        $('form').on('submit', function () {
+            var $btn = $('#btnUploadApp');
+            setButtonLoading($btn, true, 'Uploading...');
         });
     });
     //]]>

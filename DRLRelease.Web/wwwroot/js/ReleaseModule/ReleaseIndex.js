@@ -1,4 +1,13 @@
 $(document).ready(function () {
+    // --- GLOBAL BUTTON LOADER HELPER ---
+    function setButtonLoading($btn, isLoading, loadingText) {
+        if (isLoading) {
+            $btn.data('original-text', $btn.text()).prop('disabled', true).text(loadingText || 'Processing...');
+        } else {
+            $btn.prop('disabled', false).text($btn.data('original-text') || 'Submit');
+        }
+    }
+
     $('.nav-tabs a').on('click', function (e) {
         var currentAttrValue = jQuery(this).attr('href');
         $('.tabs ' + currentAttrValue).siblings().slideUp(500);
@@ -9,176 +18,138 @@ $(document).ready(function () {
     RebindProductionVersionList();
     RebindTestVersionList();
     RebindAllVersionList();
-    
-    $("#btnProductionRefresh").click(function (e) { RebindProductionVersionList(); });
-    $("#btnTestRefresh").click(function (e) { RebindTestVersionList(); });
-    $("#btnAllUserRefresh").click(function (e) { RebindAllVersionList(); });
 
-    $("#btnProductionAssignVersion").click(function (e) { ShowAssignVersionPopup("Production"); });
-    $("#btnTestAssignVersion").click(function (e) { ShowAssignVersionPopup("Test"); });
-    $("#btnAllUserAssignVersion").click(function (e) { ShowAssignVersionPopup("All"); });
+    $("#btnProductionRefresh").click(function () { 
+        var $btn = $(this);
+        setButtonLoading($btn, true, 'Refreshing...');
+        RebindProductionVersionList();
+        setTimeout(function() { setButtonLoading($btn, false); }, 800); // Auto-reset after 800ms
+    });
+    $("#btnTestRefresh").click(function () { 
+        var $btn = $(this);
+        setButtonLoading($btn, true, 'Refreshing...');
+        RebindTestVersionList();
+        setTimeout(function() { setButtonLoading($btn, false); }, 800);
+    });
+    $("#btnAllUserRefresh").click(function () { 
+        var $btn = $(this);
+        setButtonLoading($btn, true, 'Refreshing...');
+        RebindAllVersionList();
+        setTimeout(function() { setButtonLoading($btn, false); }, 800);
+    });
+
+    // Assign Version Buttons (Open Popup)
+    $("#btnProductionAssignVersion, #btnTestAssignVersion, #btnAllUserAssignVersion").click(function () {
+        var $btn = $(this);
+        setButtonLoading($btn, true, 'Loading...');
+        
+        var type = $(this).attr('id').replace('btn', '').replace('AssignVersion', ''); // "Production", "Test", or "AllUser"
+        var popupType = type === "AllUser" ? "All" : type;
+        
+        ShowAssignVersionPopup(popupType, function() {
+            setButtonLoading($btn, false); // Reset when popup opens
+        });
+    });
 });
+
+// === .NET 10 FIX: make row data work whether JSON is PascalCase or camelCase ===
+function normalizeRow(r) {
+    var out = {};
+    for (var k in r) {
+        out[k] = r[k];
+        var pascal = k.charAt(0).toUpperCase() + k.slice(1);
+        if (!(pascal in out)) out[pascal] = r[k];
+        var camel = k.charAt(0).toLowerCase() + k.slice(1);
+        if (!(camel in out)) out[camel] = r[k];
+    }
+    return out;
+}
 
 function ShowDialog(modal, popupid) {
     $("#overlay").show();
     $("#" + popupid).fadeIn(300);
-    if (modal) {
-        $("#overlay").unbind("click");
-    } else {
-        $("#overlay").click(function (e) {
-            HideDialog(popupid);
-        });
-    }
+    if (modal) { $("#overlay").unbind("click"); }
+    else { $("#overlay").click(function () { HideDialog(popupid); }); }
 }
-
 function HideDialog(popupid) {
     $("#overlay").hide();
     $("#" + popupid).html('');
     $("#" + popupid).fadeOut(300);
 }
 
-function RebindProductionVersionList() {
+function RebindProductionVersionList() { BindUserTable('#tableProductionList', '/Release/ProductionList', "Production"); }
+function RebindTestVersionList() { BindUserTable('#tableTestList', '/Release/TestList', "Test"); }
+function RebindAllVersionList() { BindUserTable('#tableAllList', '/Release/AllUserList', "All"); }
+
+function BindUserTable(tableId, apiUrl, cssType) {
     $.ajax({
         type: "POST",
-        url: "/Release/ProductionList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
+        url: apiUrl,
         data: {},
         async: false,
         success: function (data) {
-            $('#tableProductionList').DataTable({
+            var rows = (data || []).map(normalizeRow);
+            $(tableId).DataTable({
                 destroy: true,
-                data: data,
+                data: rows,
                 columns: [
                     { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
                     { title: "USER ID", data: 'UserID' },
-                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
+                    { title: "USER NAME", data: null, render: function (d, t, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
                     { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
+                    { title: "UPDATED", data: 'IsUpdated', render: function (d) { return d ? 'Yes' : 'No'; } },
                     { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
                     { title: "IOS VERSION", data: 'IOSVersion' },
                     { title: "", data: 'CurrentVersion', visible: false },
-                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
+                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (d) { return JsonToDateTimeFormat(d); } }
                 ]
             });
-            ApplyCssOnList("Production");
-        }
+            ApplyCssOnList(cssType);
+        },
+        error: function () { showMessage("Error loading " + cssType + " list.", true); }
     });
 }
 
-function RebindTestVersionList() {
-    $.ajax({
-        type: "POST",
-        url: "/Release/TestList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
-        data: {},
-        async: false,
-        success: function (data) {
-            $('#tableTestList').DataTable({
-                destroy: true,
-                data: data,
-                columns: [
-                    { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
-                    { title: "USER ID", data: 'UserID' },
-                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
-                    { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
-                    { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
-                    { title: "IOS VERSION", data: 'IOSVersion' },
-                    { title: "", data: 'CurrentVersion', visible: false },
-                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
-                ]
-            });
-            ApplyCssOnList("Test");
-        }
-    });
-}
-
-function RebindAllVersionList() {
-    $.ajax({
-        type: "POST",
-        url: "/Release/AllUserList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
-        data: {},
-        async: false,
-        success: function (data) {
-            $('#tableAllList').DataTable({
-                destroy: true,
-                data: data,
-                columns: [
-                    { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
-                    { title: "USER ID", data: 'UserID' },
-                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
-                    { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
-                    { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
-                    { title: "IOS VERSION", data: 'IOSVersion' },
-                    { title: "", data: 'CurrentVersion', visible: false },
-                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
-                ]
-            });
-            ApplyCssOnList("All");
-        }
-    });
-}
-
-function JsonToDateTimeFormat(dateAsFromServerSide) {
-    if (!dateAsFromServerSide) return "";
-    // ASP.NET Core sends ISO-8601 strings; legacy sent /Date(ms)/. This handles both perfectly.
-    var parsedDate = (typeof dateAsFromServerSide === 'string' && dateAsFromServerSide.indexOf('/Date(') === 0)
-        ? new Date(parseInt(dateAsFromServerSide.substr(6)))
-        : new Date(dateAsFromServerSide);
-
-    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var hours = parsedDate.getHours();
-    var ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    var min = parsedDate.getMinutes() < 10 ? '0' + parsedDate.getMinutes() : parsedDate.getMinutes();
-
-    return parsedDate.getDate() + "-" + monthNames[parsedDate.getMonth()] + "-" + parsedDate.getFullYear() + " " + hours + ":" + min + " " + ampm;
+function JsonToDateTimeFormat(v) {
+    if (!v) return "";
+    var d = (typeof v === 'string' && v.indexOf('/Date(') === 0) ? new Date(parseInt(v.substr(6))) : new Date(v);
+    if (isNaN(d.getTime())) return v;
+    var m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var h = d.getHours(), ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+    var mi = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+    return d.getDate() + "-" + m[d.getMonth()] + "-" + d.getFullYear() + " " + h + ":" + mi + " " + ap;
 }
 
 function ApplyCssOnList(versiontype) {
-    var divversionid = versiontype === "Test" ? "tableTestList" : (versiontype === "All" ? "tableAllList" : "tableProductionList");
-    if ($("#" + divversionid + " tr").length > 0) {
-        $("#" + divversionid + " thead tr").each(function () {
+    var id = versiontype === "Test" ? "tableTestList" : (versiontype === "All" ? "tableAllList" : "tableProductionList");
+    if ($("#" + id + " tbody tr").length > 0) {
+        $("#" + id + " thead tr").each(function () {
             $(this).children('th').eq(0).removeClass("sorting_asc");
             $(this).children('th').eq(2).addClass("td-username");
-            $(this).children('th').eq(7).addClass("td_currentversionid");
-        });
-        var rows = $("#" + divversionid).dataTable().fnGetNodes();
-        $(rows).each(function () {
-            $(this).children('td').eq(2).addClass("td-username");
-            $(this).children('td').eq(7).addClass("td_currentversionid");
         });
     }
 }
 
-function ShowAssignVersionPopup(versiontype) {
-    var UserIDS = [];
-    var UserNameS = [];
-    var UserCurrentVersionList = [];
-    var CurrentVersionIdList = [];
-
-    var tableId = versiontype === "Test" ? "#tableTestList"
-                : (versiontype === "All" ? "#tableAllList" : "#tableProductionList");
-
+function ShowAssignVersionPopup(versiontype, callback) {
+    var UserIDS = [], UserNameS = [], UserCurrentVersionList = [], CurrentVersionIdList = [];
+    var tableId = versiontype === "Test" ? "#tableTestList" : (versiontype === "All" ? "#tableAllList" : "#tableProductionList");
     var table = $(tableId).DataTable();
 
     $(tableId + ' tbody tr').each(function () {
         if ($(this).find('input[type="checkbox"]').is(':checked')) {
-            // Read straight from the row data (same values the old app intended)
-            var row = table.row(this).data();
-
+            var row = normalizeRow(table.row(this).data());
             UserIDS.push(row.UserID);
             UserNameS.push((row.FirstName || '') + ' ' + (row.LastName || ''));
             UserCurrentVersionList.push(row.CurrentVersionName || "0");
-            CurrentVersionIdList.push(row.CurrentVersion); // <-- CORRECT ID, immune to column visibility
-
+            CurrentVersionIdList.push(row.CurrentVersion);
             $(this).find('input[type="checkbox"]').prop('checked', false);
         }
     });
 
     $.ajax({
         type: "POST",
-        url: "/Release/PopupAssignVersion", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
-        traditional: true, // <-- .NET 10 FIX: CRITICAL for ASP.NET Core to bind List<int> correctly
+        url: "/Release/PopupAssignVersion",
+        traditional: true,
         data: {
             versionType: versiontype,
             userIdList: UserIDS,
@@ -186,99 +157,78 @@ function ShowAssignVersionPopup(versiontype) {
             userCurrentVersions: UserCurrentVersionList,
             currentVersionIdList: CurrentVersionIdList
         },
-        // <-- .NET 10 FIX: Removed JSON.stringify and contentType. ASP.NET Core expects form-encoded data for this signature.
         success: function (data) {
             $('#AssignVersion_dialog').html(data);
             ShowDialog(false, "AssignVersion_dialog");
+            if (callback) callback(); // <-- ADD THIS LINE
         },
-        error: function () {
-            showMessage("Error loading assign version dialog.", true);
-        }
+        error: function () { showMessage("Error loading assign version dialog.", true); }
     });
 }
 
 function showMessage(msg, isError) {
-    if (isError) {
-        $('#msgContainer').attr('class', 'error');
-    } else {
-        $('#msgContainer').attr('class', 'warning');
-    }
+    $('#msgContainer').attr('class', isError ? 'error' : 'warning');
     $('#lblMessage').text(msg);
     $('#msgContainer').show();
 }
 
-// --- Assign Version Dialog Handlers (matches old AssignVersion.js) ---
-
-function CloseAssinedVersionWindow() {
-    HideDialog("AssignVersion_dialog");
-}
-
-// Cancel button handler
-$(document).on('click', '#btnassingdialogcancel, #btndialogClose', function (e) {
-    CloseAssinedVersionWindow();
+// === SINGLE handlers (no duplicates) ===
+$(document).on('click', '#btnassingdialogcancel, .dialog-close', function (e) {
     e.preventDefault();
+    HideDialog("AssignVersion_dialog");
 });
 
-// Assign button handler
 $(document).on('click', '#btnAssign', function (e) {
     e.preventDefault();
+    var assignedVersionId = parseInt($("#ddlAssignVersion").val(), 10);
+    var userIdsText = $("#hiddenUserIds").val();
+    var userCurrentVersionId = parseInt($("#CurrentVersionId").val(), 10);
 
-    var userids = $("#txtAV_UserID").text().split(' / ');
-    var AssingedVersionId = parseInt($("#ddlAssignVersion option:selected").val());
-    var UserCurrentVersionId = parseInt($("#CurrentVersionId").val());
+    if (!assignedVersionId) { showMessage("Please select a version to assign.", true); return; }
+    if (!userIdsText) { showMessage("No users selected.", true); return; }
 
-    if (!AssingedVersionId) {
-        showMessage("Please select a version to assign.", true);
-        return;
-    }
+    var userIds = userIdsText.split(' / ').map(function (id) { return parseInt(id.trim(), 10); });
 
     $.ajax({
         type: "POST",
         url: "/Release/SaveAssignVersion",
         traditional: true,
-        data: {
-            assignedVersionId: AssingedVersionId,
-            userIdList: userids,
-            userCurrentVersionId: UserCurrentVersionId
-        },
+        data: { assignedVersionId: assignedVersionId, userIdList: userIds, userCurrentVersionId: userCurrentVersionId },
         success: function (data) {
             if (data.success) {
                 showMessage("Version has been assigned to selected users.", false);
-                CloseAssinedVersionWindow();
-                // Refresh all tabs to show updated assignments
+                HideDialog("AssignVersion_dialog");
                 RebindProductionVersionList();
                 RebindTestVersionList();
                 RebindAllVersionList();
-            } else {
-                showMessage('Error: ' + data.message, true);
-            }
+            } else { showMessage('Error: ' + data.message, true); }
         },
-        error: function () {
-            showMessage("An error occurred while assigning the version.", true);
-        }
+        error: function () { showMessage("An error occurred while assigning the version.", true); }
     });
 }
 
-// --- Assign Version Dialog Handlers (matches old AssignVersion.js) ---
+// --- Button Loading Helper Usage ---
 
-function SubmitAssignVersion() {
-        var assignedVersionId = parseInt($("#ddlAssignVersion").val());
-        var userIdsText = $("#hiddenUserIds").val();
-        var userCurrentVersionId = parseInt($("#CurrentVersionId").val());
+// Assign Version Submit Handler (event delegation for dynamically loaded popup)
+$(document).on('click', '#btnAssign', function (e) {
+    e.preventDefault();
+    var $btn = $(this);
+    var assignedVersionId = parseInt($("#ddlAssignVersion").val(), 10);
+    var userIdsText = $("#hiddenUserIds").val();
+    var userCurrentVersionId = parseInt($("#CurrentVersionId").val(), 10);
 
-        if (!assignedVersionId) {
-            showMessage("Please select a version to assign.", true);
-            return;
-        }
+    if (!assignedVersionId) {
+        showMessage("Please select a version to assign.", true);
+        return;
+    }
+    if (!userIdsText) {
+        showMessage("No users selected.", true);
+        return;
+    }
 
-        if (!userIdsText) {
-            showMessage("No users selected.", true);
-            return;
-        }
-    
+    var userIds = userIdsText.split(' / ').map(function (id) { return parseInt(id.trim(), 10); });
 
-    // Split user IDs (they're stored as "7 / 14 / 22")
-    var userIds = userIdsText.split(' / ').map(function(id) { return parseInt(id.trim()); });
+    setButtonLoading($btn, true, 'Assigning...');
 
     $.ajax({
         type: "POST",
@@ -293,8 +243,6 @@ function SubmitAssignVersion() {
             if (data.success) {
                 showMessage("Version has been assigned to selected users.", false);
                 HideDialog("AssignVersion_dialog");
-                
-                // Refresh all tabs to show updated assignments
                 RebindProductionVersionList();
                 RebindTestVersionList();
                 RebindAllVersionList();
@@ -304,6 +252,62 @@ function SubmitAssignVersion() {
         },
         error: function () {
             showMessage("An error occurred while assigning the version.", true);
+        },
+        complete: function () {
+            setButtonLoading($btn, false);
         }
     });
-}
+});
+
+// Update Production Version Submit Handler (for Popup_UploadProductionVersion)
+$(document).on('click', '#btnUpdateProduction', function (e) {
+    e.preventDefault();
+    var $btn = $('#btnUpdateProduction');
+    var selectedVersion = $('input[name="appVersionId"]:checked').val();
+    var whatsNewText = $('textarea[name="whatsNewList"]').val();
+    var whatsNewArray = whatsNewText.split('\n').filter(line => line.trim() !== '');
+
+    if (!selectedVersion) {
+        showMessage("Please select a version to promote.", true);
+        return;
+    }
+
+    setButtonLoading($btn, true, 'Updating...');
+
+    $.ajax({
+        url: '/Release/UpdateProductionVersion',
+        type: 'POST',
+        traditional: true,
+        data: {
+            appVersionId: selectedVersion,
+            whatsNewList: whatsNewArray
+        },
+        success: function (response) {
+            if (response.success) {
+                showMessage("Application version promoted to production successfully.", false);
+                HideDialog('UploadProductionVersion_dialog');
+            } else {
+                showMessage("Error: " + response.message, true);
+            }
+        },
+        error: function () {
+            showMessage("An error occurred while promoting the version.", true);
+        },
+        complete: function () {
+            setButtonLoading($btn, false);
+        }
+    });
+});
+
+// Update Status Toggle Handler (for AppVersions.cshtml)
+$(document).on('ajaxSuccess', 'form[action*="/Release/UpdateAppVersion"]', function () {
+    // The revert logic is handled inside the updatestatus function itself
+});
+
+// Upload New App Form Submit Handler
+$(document).on('submit', 'form[action*="/Release/UploadNewApp"]', function (e) {
+    var $btn = $('#btnUploadApp');
+    setButtonLoading($btn, true, 'Uploading...');
+    // Form will submit normally; the page reload will handle the button state
+    // We don't prevent submission; just set the loader state
+});
