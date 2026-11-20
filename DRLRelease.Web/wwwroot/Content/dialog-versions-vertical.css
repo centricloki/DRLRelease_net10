@@ -1,0 +1,41 @@
+﻿/*
+ * Vertical radio list for the "Update Production Version" dialog.
+ * Applied together with the master class, e.g. <ul class="radiobuttonlist radiobuttonlist-vertical">.
+ * The master rules (.formpage .radiobuttonlist ...) still load; the selectors below are
+ * MORE SPECIFIC (extra class), so only the float/width that cause horizontal flow are overridden.
+ */
+
+/* ul container: stop the whole list from floating left */
+.formpage .radiobuttonlist.radiobuttonlist-vertical {
+    float: none;
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+    /* each li: stack vertically (this is the actual fix for horizontal alignment) */
+    .formpage .radiobuttonlist.radiobuttonlist-vertical li {
+        float: none;
+        clear: both;
+        width: 100%;
+        display: block;
+        line-height: normal;
+        margin-bottom: 6px;
+    }
+
+        /* label: stop floating right / fixed 51% width; sit inline next to its radio */
+        .formpage .radiobuttonlist.radiobuttonlist-vertical li label {
+            float: none;
+            display: inline-block;
+            width: auto;
+            padding-left: 4px;
+            vertical-align: middle;
+            /* font-weight, font-size, padding-left:0 base values remain from master unless overridden */
+        }
+
+        /* input keeps master's 25px width; only ensure baseline alignment with the label */
+        .formpage .radiobuttonlist.radiobuttonlist-vertical li input {
+            width: 25px;
+            margin: 0;
+            vertical-align: middle;
+        }

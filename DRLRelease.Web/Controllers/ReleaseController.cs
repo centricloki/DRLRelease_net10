@@ -2,11 +2,13 @@ using DRLRelease.Business;
 using DRLRelease.Common;
 using DRLRelease.DataModel;
 using DRLRelease.Web.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,13 +34,23 @@ namespace DRLRelease.Web.Controllers
         // GET: /Release/   (dashboard)
         public IActionResult Index()
         {
-            //Production Version
-            ViewBag.LatestProductionVersion = "V_0.0";
             List<AppVersion> appversions = _common.GetAppVersionList();
-            AppVersion app = (from ap in appversions where ap.IsActive == true && ap.IsProduction == true select ap).FirstOrDefault();
-            if (app != null)
-                ViewBag.LatestProductionVersion = "V_" + app.Version.ToString();
-            //Test Version
+
+            // 1. Production Version (Updated to use .ToList() and foreach, matching Test Version logic)
+            ViewBag.LatestProductionVersion = "V_0.0";
+            List<AppVersion> prodapp = (from ap in appversions where ap.IsActive == true && ap.IsProduction == true select ap).ToList();
+            string ProdVersion = "";
+            foreach (AppVersion item in prodapp)
+            {
+                if (!string.IsNullOrEmpty(ProdVersion))
+                    ProdVersion = ProdVersion + " , V_" + Convert.ToString(item.Version);
+                else
+                    ProdVersion = " V_" + Convert.ToString(item.Version);
+            }
+            if (!string.IsNullOrEmpty(ProdVersion))
+                ViewBag.LatestProductionVersion = ProdVersion;
+
+            // 2. Test Version
             ViewBag.LatestTestVersion = "V_0.0";
             List<AppVersion> testapp = (from ap in appversions where ap.IsActive == true && ap.IsProduction == false select ap).ToList();
             string TestVersion = "";
@@ -51,7 +63,8 @@ namespace DRLRelease.Web.Controllers
             }
             if (!string.IsNullOrEmpty(TestVersion))
                 ViewBag.LatestTestVersion = TestVersion;
-            // Active Version
+
+            // 3. Active Version
             ViewBag.ActiveVersions = "V_0.0";
             List<AppVersion> allapp = (from ap in appversions where ap.IsActive == true select ap).ToList();
             string ActiveVersion = "";
@@ -116,7 +129,7 @@ namespace DRLRelease.Web.Controllers
 
         #region Promote to Production
 
-        [HttpGet]
+        [AcceptVerbs("GET", "POST")]   // legacy MVC had no verb filter → accepted both
         public IActionResult PopupUploadProductionVersion()
         {
             var model = new UploadProductionVersionModel();
@@ -241,7 +254,7 @@ namespace DRLRelease.Web.Controllers
 
                     // Save to database via Dapper
                     _common.SetUserAppVersion(data);
-                    
+
                     // NOTE: Push Notification logic has been intentionally removed as requested.
                 }
                 isSuccessful = true;
@@ -365,7 +378,7 @@ namespace DRLRelease.Web.Controllers
             {
                 var doc = new XmlDocument();
                 doc.Load(plistFilePath);
-                
+
                 var downloadUrlNode = doc.SelectSingleNode("//dict/array/dict/array/dict/string[2]");
                 var versionNode = doc.SelectSingleNode("//dict/array/dict/dict[1]/string[2]");
 
