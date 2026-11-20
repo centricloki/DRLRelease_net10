@@ -127,21 +127,22 @@ namespace DRLRelease.Web.Controllers
 
         #endregion
 
-        #region Promote to Production
+        #region Promote to Production (Update Version)
 
-        [AcceptVerbs("GET", "POST")]   // legacy MVC had no verb filter → accepted both
-        public IActionResult PopupUploadProductionVersion()
+        // GET: /Release/UpdateVersion  (the page)
+        [HttpGet]
+        public IActionResult UpdateVersion()
         {
             var model = new UploadProductionVersionModel();
 
-            // EXACT old query: sp_Release_GetAppVersion with AppVersionID=0, IsProduction=false
+            // EXACT same query as the old dialog: sp_Release_GetAppVersion, AppVersionID=0, IsProduction=false
             var data = new AppVersion { AppVersionID = 0, IsProduction = false };
-            var list = _common.GetAppVersion(data).Where(x => x.IsActive == true).ToList();
+            model.TestVersionList = _common.GetAppVersion(data).Where(x => x.IsActive == true).ToList();
 
-            model.TestVersionList = list;
-            return PartialView("Popup_UploadProductionVersion", model);
+            return View(model);
         }
 
+        // POST: /Release/UpdateProductionVersion  (JSON AJAX endpoint)
         [HttpPost]
         public IActionResult UpdateProductionVersion([FromBody] UpdateProductionVersionRequest request)
         {
@@ -151,24 +152,19 @@ namespace DRLRelease.Web.Controllers
             try
             {
                 var whatsNewList = request?.WhatsNewList;
-                // EXACT old join: "." separator
                 string strWhatsNew = (whatsNewList != null && whatsNewList.Length > 0)
                     ? string.Join(".", whatsNewList)
                     : string.Empty;
 
                 isSuccess = _common.UpdateProductionAppVersion(request.AppVersionId, strWhatsNew);
-                if (!isSuccess)
-                {
-                    message = "Production app version NOT updated.";
-                }
+                if (!isSuccess) message = "Production app version NOT updated.";
             }
             catch (Exception ex)
             {
-                message = "Error accord while updating production app";
+                message = "Error occurred while updating production app.";
                 ExceptionLog.WriteLog(ex);
             }
 
-            // Old returns lowercase keys success/message
             return Json(new { success = isSuccess, message = message });
         }
 
@@ -176,7 +172,7 @@ namespace DRLRelease.Web.Controllers
 
         #region Assign Version
 
-        [HttpGet]
+        [HttpPost] // <-- Fix: Match the POST request from your JavaScript
         public IActionResult PopupAssignVersion(string versionType, List<int> userIdList, List<string> userNameList, List<string> userCurrentVersions, List<int> currentVersionIdList)
         {
             var model = new AssignVersionModel
@@ -209,12 +205,18 @@ namespace DRLRelease.Web.Controllers
                     model.CurrentVersionId = currentVersionIdList[0];
                 }
 
-                // Get versions available for assignment (Active OR Production)
-                var assignVersions = _common.GetAppVersionList()
-                                            .Where(x => x.IsProduction || x.IsActive)
-                                            .ToList();
+                // Get ALL versions (not just active) for assignment - matches old app behavior
+                var allVersions = _common.GetAllVersionList();
+                
+                // Filter to only show versions that are Active OR Production
+                var assignVersions = allVersions.Where(x => x.IsActive || x.IsProduction).ToList();
 
-                model.AssignList = new SelectList(assignVersions, "AppVersionID", "Version");
+                // Create SelectList with explicit Value and Text
+                model.AssignList = new SelectList(
+                    assignVersions.Select(v => new { v.AppVersionID, v.Version }),
+                    "AppVersionID",
+                    "Version"
+                );
 
                 if (string.IsNullOrEmpty(model.ErrorMessage) && assignVersions.Count == 0)
                 {

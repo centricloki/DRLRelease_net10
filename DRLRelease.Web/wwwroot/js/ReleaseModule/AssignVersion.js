@@ -28,11 +28,8 @@ $("#btnAssign").click(function (e) {
         success: function (data) {
             if (data.Success) {
                 showMessage("Version has been assigned to selected users.", false);
-                RebindProductionVersionList();
-                RebindTestVersionList();
-                RebindAllVersionList();
+                RebindAllTabs();                       // refresh Production + Test + All
                 CloseAssinedVersionWindow();
-                //location.reload();
             }
             else {
                 showMessage('Error: ' + data.Message, true);

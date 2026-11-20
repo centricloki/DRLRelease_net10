@@ -9,513 +9,301 @@ $(document).ready(function () {
     RebindProductionVersionList();
     RebindTestVersionList();
     RebindAllVersionList();
-    $("#btnProductionRefresh").click(function (e) {
-        RebindProductionVersionList();
-    });
-    $("#btnTestRefresh").click(function (e) {
-        RebindTestVersionList();
-    });
-    $("#btnAllUserRefresh").click(function (e) {
-        RebindAllVersionList();
-    });
+    
+    $("#btnProductionRefresh").click(function (e) { RebindProductionVersionList(); });
+    $("#btnTestRefresh").click(function (e) { RebindTestVersionList(); });
+    $("#btnAllUserRefresh").click(function (e) { RebindAllVersionList(); });
 
-    $("#btnProductionFilter").click(function (e) {
-        ShowFilterPopup("Production");
-    });
-    $("#btnTestFilter").click(function (e) {
-        ShowFilterPopup("Test");
-    });
-
-    $("#btnProductionAssignVersion").click(function (e) {
-        ShowAssignVersionPopup("Production");
-    });
-    $("#btnTestAssignVersion").click(function (e) {
-        ShowAssignVersionPopup("Test");
-    });
-    $("#btnAllUserAssignVersion").click(function (e) {
-        ShowAssignVersionPopup("All");
-    });
-    $("#btnUploadProductVersion").click(function (e) {
-        $.ajax({
-            type: "POST",
-            url: _relativeBaseDirectory + "/Release/PopupUploadProductionVersion",
-            data: {},
-            success: function (data) {
-                $('#UploadProductionVersion_dialog').html(data);
-                ShowDialog(false, "UploadProductionVersion_dialog");
-                e.preventDefault();
-            }
-        });
-    });
-
-    //$("#btnUploadApp").click(function (e) {
-    //    $.ajax({
-    //        type: "GET",
-    //        url: _relativeBaseDirectory + "/Release/PopupUploadNewApp",
-    //        data: {},
-    //        success: function (data) {
-    //            $('#UploadNewApp_dialog').html(data);
-    //            ShowDialog(false, "UploadNewApp_dialog");
-    //            e.preventDefault();
-    //        }
-    //    });
-    //});
-
-    //$('#tableProductionList tbody').on('click', 'tr', function () {
-    //    if ($(this).children('td').find("input").is(":checked")) {
-    //        $(this).children('td').find("input").removeAttr("checked", "checked");
-    //        $(this).removeClass('selected');
-    //    }
-    //    else {
-    //        $(this).children('td').find("input").attr("checked", "checked")
-    //        $(this).addClass('selected');
-    //        //$(this).toggleClass('selected');
-    //    }
-    //});
-
-    //$('#tableTestList tbody').on('click', 'tr', function () {
-    //    if ($(this).children('td').find("input").is(":checked")) {
-    //        $(this).children('td').find("input").removeAttr("checked", "checked");
-    //        $(this).removeClass('selected');
-    //    }
-    //    else {
-    //        $(this).children('td').find("input").attr("checked", "checked")
-    //        $(this).addClass('selected');
-    //        //$(this).toggleClass('selected');
-    //    }
-    //});
+    $("#btnProductionAssignVersion").click(function (e) { ShowAssignVersionPopup("Production"); });
+    $("#btnTestAssignVersion").click(function (e) { ShowAssignVersionPopup("Test"); });
+    $("#btnAllUserAssignVersion").click(function (e) { ShowAssignVersionPopup("All"); });
 });
 
-function selectedRepIds(chkid) {
-    if ($(chkid).is(":checked")) {
-        $(chkid).parent().addClass("selected");
-    }
-    else {
-        $(chkid).parent().removeClass("selected");
-    }
-}
-// This function is using show the dialog/popup
 function ShowDialog(modal, popupid) {
     $("#overlay").show();
     $("#" + popupid).fadeIn(300);
     if (modal) {
         $("#overlay").unbind("click");
-    }
-    else {
+    } else {
         $("#overlay").click(function (e) {
             HideDialog(popupid);
         });
     }
 }
-// The function is hide the dialog box / popup
+
 function HideDialog(popupid) {
     $("#overlay").hide();
     $("#" + popupid).html('');
     $("#" + popupid).fadeOut(300);
 }
-// This function used to drag and drop function for the popup
-function handle_mousedown(e) {
 
-    window.my_dragging = {};
-    my_dragging.pageX0 = e.pageX;
-    my_dragging.pageY0 = e.pageY;
-    my_dragging.elem = $(this).parent();
-    my_dragging.offset0 = $(this).offset();
-    function handle_dragging(e) {
-        var left = my_dragging.offset0.left + (e.pageX - my_dragging.pageX0);
-        var top = my_dragging.offset0.top + (e.pageY - my_dragging.pageY0);
-        $(my_dragging.elem)
-        .offset({ top: top, left: left });
-    }
-    function handle_mouseup(e) {
-        $(this).parent()
-    .off('mousemove', handle_dragging)
-    .off('mouseup', handle_mouseup);
-    }
-
-    $(this).parent()
-    .on('mouseup', handle_mouseup)
-    .on('mousemove', handle_dragging);
-}
-// This function is bind user app version list which is used Production Version
 function RebindProductionVersionList() {
-    //$.ajax({
-    //    type: "POST",
-    //    url: _relativeBaseDirectory + "/Release/ProductionVersionList",
-    //    data: {},
-    //    success: function (data) {
-    //        $('#divProductionVersion').html(data);
-    //    }
-    //});
     $.ajax({
         type: "POST",
-        url: _relativeBaseDirectory + "/Release/ProductionList",
+        url: "/Release/ProductionList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
         data: {},
         async: false,
         success: function (data) {
-            var dataSet = [];
-            dataSet = data;
             $('#tableProductionList').DataTable({
                 destroy: true,
-                data: dataSet,
+                data: data,
                 columns: [
-                       {
-                           targets: 0,
-                           sortable: false,
-                           defaultContent: '',
-                           //orderable: false,
-                           "render": function (data, type, full, meta) {
-                               //return '<span class="custom-checkbox"><input type="checkbox" value="wibble" onchange="selectedRepIds(this);"></span>';
-                               return '<input type="checkbox" value="wibble"/>';
-                           }
-                       },
-                       { title: "USER ID", data: 'UserID' },
-                       {
-                           title: "USER NAME",
-                           data: null,
-                           sclass: "amit",
-                           render: function (data, type, row) {
-                               // Combine the first and last names into a single table field
-                               $(row).addClass('important');
-                               return data.FirstName + ' ' + data.LastName;
-                           },
-                           editField: ['FirstName', 'LastName']
-                       },
-
+                    { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
+                    { title: "USER ID", data: 'UserID' },
+                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
                     { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    {
-                        title: "UPDATED",
-                        data: null,
-                        render: function (data, type, row) {
-                            // Combine the first and last names into a single table field
-                            if (data.IsUpdated) {
-                                return '<span>Yes</span>';
-                            }
-                            else {
-                                return '<span>No</span>';
-                            }
-                        },
-                    },
+                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
                     { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
-                    //AssignedVersionName
                     { title: "IOS VERSION", data: 'IOSVersion' },
-                    { title: "", data: 'CurrentVersion' },
-                    {
-                        title: "IPAD LOGIN",
-                        data: null,
-                        render: function (data, type, row) {
-                            return '<span>' + JsonToDateTimeFormat(data.LastLoginDateTime) + '</span>';
-                        },
-                    }
+                    { title: "", data: 'CurrentVersion', visible: false },
+                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
                 ]
             });
+            ApplyCssOnList("Production");
         }
     });
-    ApplyCssOnList("Production");
 }
-// This function is bind user app version list which is used Test Version
+
 function RebindTestVersionList() {
     $.ajax({
         type: "POST",
-        url: _relativeBaseDirectory + "/Release/TestList",
+        url: "/Release/TestList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
         data: {},
         async: false,
         success: function (data) {
-            var dataSet = [];
-            dataSet = data;
             $('#tableTestList').DataTable({
                 destroy: true,
-                data: dataSet,
+                data: data,
                 columns: [
-                       {
-                           targets: 0,
-                           sortable: false,
-                           defaultContent: '',
-                           //orderable: false,
-                           "render": function (data, type, full, meta) {
-                               return '<input type="checkbox" value="wibble">';
-                           }
-                       },
-                       { title: "USER ID", data: 'UserID' },
-                       {
-                           title: "USER NAME",
-                           data: null,
-                           sclass: "amit",
-                           render: function (data, type, row) {
-                               // Combine the first and last names into a single table field
-                               $(row).addClass('important');
-                               return data.FirstName + ' ' + data.LastName;
-                           },
-                           editField: ['FirstName', 'LastName']
-                       },
-
+                    { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
+                    { title: "USER ID", data: 'UserID' },
+                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
                     { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    {
-                        title: "UPDATED",
-                        data: null,
-                        render: function (data, type, row) {
-                            // Combine the first and last names into a single table field
-                            if (data.IsUpdated) {
-                                return '<span>Yes</span>';
-                            }
-                            else {
-                                return '<span>No</span>';
-                            }
-                        },
-                    },
+                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
                     { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
                     { title: "IOS VERSION", data: 'IOSVersion' },
-                    { title: "", data: 'CurrentVersion' },
-                    {
-                        title: "IPAD LOGIN",
-                        data: null,
-                        render: function (data, type, row) {
-                            return '<span>' + JsonToDateTimeFormat(data.LastLoginDateTime) + '</span>';
-                        },
-                    }
+                    { title: "", data: 'CurrentVersion', visible: false },
+                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
                 ]
             });
+            ApplyCssOnList("Test");
         }
     });
-    ApplyCssOnList("Test");
 }
-// This function is bind user app version list which is used Test Version
+
 function RebindAllVersionList() {
     $.ajax({
         type: "POST",
-        url: _relativeBaseDirectory + "/Release/AllUserList",
+        url: "/Release/AllUserList", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
         data: {},
         async: false,
         success: function (data) {
-            var dataSet = [];
-            dataSet = data;
             $('#tableAllList').DataTable({
                 destroy: true,
-                data: dataSet,
+                data: data,
                 columns: [
-                       {
-                           targets: 0,
-                           sortable: false,
-                           defaultContent: '',
-                           //orderable: false,
-                           "render": function (data, type, full, meta) {
-                               return '<input type="checkbox" value="wibble">';
-                           }
-                       },
-                       { title: "USER ID", data: 'UserID' },
-                       {
-                           title: "USER NAME",
-                           data: null,
-                           sclass: "amit",
-                           render: function (data, type, row) {
-                               // Combine the first and last names into a single table field
-                               $(row).addClass('important');
-                               return data.FirstName + ' ' + data.LastName;
-                           },
-                           editField: ['FirstName', 'LastName']
-                       },
-
+                    { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
+                    { title: "USER ID", data: 'UserID' },
+                    { title: "USER NAME", data: null, render: function (data, type, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
                     { title: "CURRENT VERSION", data: 'CurrentVersionName' },
-                    {
-                        title: "UPDATED",
-                        data: null,
-                        render: function (data, type, row) {
-                            // Combine the first and last names into a single table field
-                            if (data.IsUpdated) {
-                                return '<span>Yes</span>';
-                            }
-                            else {
-                                return '<span>No</span>';
-                            }
-                        },
-                    },
+                    { title: "UPDATED", data: 'IsUpdated', render: function (data) { return data ? 'Yes' : 'No'; } },
                     { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
                     { title: "IOS VERSION", data: 'IOSVersion' },
-                    { title: "", data: 'CurrentVersion' },
-                    {
-                        title: "IPAD LOGIN",
-                        data: null,
-                        render: function (data, type, row) {
-                            return '<span>' + JsonToDateTimeFormat(data.LastLoginDateTime) + '</span>';
-                        },
-                    }
+                    { title: "", data: 'CurrentVersion', visible: false },
+                    { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (data) { return JsonToDateTimeFormat(data); } }
                 ]
             });
+            ApplyCssOnList("All");
         }
     });
-    ApplyCssOnList("All");
 }
 
-// This function is used to convert json date to real date as per format
 function JsonToDateTimeFormat(dateAsFromServerSide) {
-    var newdate = "";
-    if (dateAsFromServerSide != null) {
-        // ASP.NET Core sends ISO-8601 strings; the old ASP.NET MVC 5 sent /Date(ms)/. Accept both.
-        var parsedDate = (typeof dateAsFromServerSide === 'string' && dateAsFromServerSide.indexOf('/Date(') === 0)
-            ? new Date(parseInt(dateAsFromServerSide.substr(6)))
-            : new Date(dateAsFromServerSide);
-        var jsDate = new Date(parsedDate); //Date object
-        var monthname = "";
-        switch (parseInt(jsDate.getMonth() + 1)) {
-            case 1:
-                monthname = "Jan";
-                break;
-            case 2:
-                monthname = "Feb";
-                break;
-            case 3:
-                monthname = "Mar";
-                break;
-            case 4:
-                monthname = "Apr";
-                break;
-            case 5:
-                monthname = "May";
-                break;
-            case 6:
-                monthname = "Jun";
-                break;
-            case 7:
-                monthname = "Jul";
-                break;
-            case 8:
-                monthname = "Aug";
-                break;
-            case 9:
-                monthname = "Sep";
-                break;
-            case 10:
-                monthname = "Oct";
-                break;
-            case 11:
-                monthname = "Nov";
-                break;
-            case 12:
-                monthname = "Dec";
-                break;
-        }
-        var ampm = "pm";
-        if (jsDate.getHours() <= 12) {
-            ampm = "AM"
-        }
-        var hours = jsDate.getHours();
-        if (hours <= 9) {
-            hours = "0" + hours;
-        }
-        var min = jsDate.getMinutes();
-        if (min <= 9) {
-            min = "0" + min;
-        }
-        newdate = jsDate.getDate() + "-" + monthname + "-" + jsDate.getFullYear() + " " + hours + ":" + min + " " + ampm;
-    }
-    return newdate;
+    if (!dateAsFromServerSide) return "";
+    // ASP.NET Core sends ISO-8601 strings; legacy sent /Date(ms)/. This handles both perfectly.
+    var parsedDate = (typeof dateAsFromServerSide === 'string' && dateAsFromServerSide.indexOf('/Date(') === 0)
+        ? new Date(parseInt(dateAsFromServerSide.substr(6)))
+        : new Date(dateAsFromServerSide);
+
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var hours = parsedDate.getHours();
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    var min = parsedDate.getMinutes() < 10 ? '0' + parsedDate.getMinutes() : parsedDate.getMinutes();
+
+    return parsedDate.getDate() + "-" + monthNames[parsedDate.getMonth()] + "-" + parsedDate.getFullYear() + " " + hours + ":" + min + " " + ampm;
 }
-// The function is using popup the filter popup which is not using..
-function ShowFilterPopup(versiontype) {
-    $.ajax({
-        type: "POST",
-        url: _relativeBaseDirectory + "/Release/PopupProductionFilter",
-        data: ({ 'VersionType': versiontype }),
-        success: function (data) {
-            $('#divFilters_dialog').html(data);
-            ShowDialog(false, "divFilters_dialog");
-            $("#txtPUserId").focus();
-        }
-    });
-}
-// Apply CSS class when create version list for test and production
+
 function ApplyCssOnList(versiontype) {
-    var divversionid = "";
-    if (versiontype == "Test") {
-        divversionid = "tableTestList";
-    }
-    if (versiontype == "All") {
-        divversionid = "tableAllList";
-    }
-    else {
-        divversionid = "tableProductionList";
-    }
+    var divversionid = versiontype === "Test" ? "tableTestList" : (versiontype === "All" ? "tableAllList" : "tableProductionList");
     if ($("#" + divversionid + " tr").length > 0) {
-        //Apply CSS on table header
         $("#" + divversionid + " thead tr").each(function () {
-            $(this).children('th').eq(0).removeClass("sorting_asc");//
-            $(this).children('th').eq(2).addClass("td-username"); //Apply username in align-left
-            $(this).children('th').eq(7).addClass("td_currentversionid"); //Apply username in align-left
+            $(this).children('th').eq(0).removeClass("sorting_asc");
+            $(this).children('th').eq(2).addClass("td-username");
+            $(this).children('th').eq(7).addClass("td_currentversionid");
         });
-        //Apply CSS on table body
         var rows = $("#" + divversionid).dataTable().fnGetNodes();
         $(rows).each(function () {
-            $(this).children('td').eq(2).addClass("td-username"); //Apply username in align-left
-            $(this).children('td').eq(7).addClass("td_currentversionid"); //Apply username in align-left
+            $(this).children('td').eq(2).addClass("td-username");
+            $(this).children('td').eq(7).addClass("td_currentversionid");
         });
     }
 }
-// The function is open the assign version as per version type like Production or Test
+
 function ShowAssignVersionPopup(versiontype) {
     var UserIDS = [];
     var UserNameS = [];
     var UserCurrentVersionList = [];
     var CurrentVersionIdList = [];
-    var divversionid = "tableProductionList";
-    if (versiontype == "Test") {
-        divversionid = "tableTestList";
-    }
-    else if (versiontype == "All") {
-        divversionid = "tableAllList";
-    }
-    var rows = $("#" + divversionid).dataTable().fnGetNodes();
-    $(rows).each(function () {
-        if ($(this).find("input").is(":checked")) {
-            UserIDS.push($(this).children('td').eq(1).text());
-            UserNameS.push($(this).children('td').eq(2).text());
-            var conversion = $(this).children('td').eq(3).text();
-            CurrentVersionIdList.push($(this).children('td').eq(7).text());
-            if (conversion == null || conversion == "") {
-                UserCurrentVersionList.push("0");
-            }
-            else {
-                UserCurrentVersionList.push(conversion);
-            }
-            $(this).find('input').removeAttr("checked");
-            //$(rows[iRow]).toggleClass('selected');
+
+    var tableId = versiontype === "Test" ? "#tableTestList"
+                : (versiontype === "All" ? "#tableAllList" : "#tableProductionList");
+
+    var table = $(tableId).DataTable();
+
+    $(tableId + ' tbody tr').each(function () {
+        if ($(this).find('input[type="checkbox"]').is(':checked')) {
+            // Read straight from the row data (same values the old app intended)
+            var row = table.row(this).data();
+
+            UserIDS.push(row.UserID);
+            UserNameS.push((row.FirstName || '') + ' ' + (row.LastName || ''));
+            UserCurrentVersionList.push(row.CurrentVersionName || "0");
+            CurrentVersionIdList.push(row.CurrentVersion); // <-- CORRECT ID, immune to column visibility
+
+            $(this).find('input[type="checkbox"]').prop('checked', false);
         }
     });
+
     $.ajax({
         type: "POST",
-        url: _relativeBaseDirectory + "/Release/PopupAssignVersion",
-        datatype: 'json',
-        data: JSON.stringify({ 'VersionType': versiontype, 'UserIdList': UserIDS, 'UserNameList': UserNameS, 'UserCurrentVersions': UserCurrentVersionList, 'CurrentVersionIdList': CurrentVersionIdList }),
-        async: false,
-        contentType: 'application/json; charset=utf-8',
+        url: "/Release/PopupAssignVersion", // <-- .NET 10 FIX: Removed _relativeBaseDirectory
+        traditional: true, // <-- .NET 10 FIX: CRITICAL for ASP.NET Core to bind List<int> correctly
+        data: {
+            versionType: versiontype,
+            userIdList: UserIDS,
+            userNameList: UserNameS,
+            userCurrentVersions: UserCurrentVersionList,
+            currentVersionIdList: CurrentVersionIdList
+        },
+        // <-- .NET 10 FIX: Removed JSON.stringify and contentType. ASP.NET Core expects form-encoded data for this signature.
         success: function (data) {
             $('#AssignVersion_dialog').html(data);
             ShowDialog(false, "AssignVersion_dialog");
+        },
+        error: function () {
+            showMessage("Error loading assign version dialog.", true);
         }
     });
 }
-
-function SelectedUserID(chkid) {
-    if ($(chkid).parent().hasClass("selected")) {
-        $(chkid).parent().removeClass("selected");
-    }
-    else {
-        $(chkid).parent().addClass("selected");
-    }
-}
-
 
 function showMessage(msg, isError) {
     if (isError) {
         $('#msgContainer').attr('class', 'error');
-    }
-    else {
+    } else {
         $('#msgContainer').attr('class', 'warning');
     }
     $('#lblMessage').text(msg);
     $('#msgContainer').show();
 }
 
-function hideMessage() {
-    $('#msgContainer').attr('class', '');
-    $('#msgContainer').hide();
+// --- Assign Version Dialog Handlers (matches old AssignVersion.js) ---
+
+function CloseAssinedVersionWindow() {
+    HideDialog("AssignVersion_dialog");
+}
+
+// Cancel button handler
+$(document).on('click', '#btnassingdialogcancel, #btndialogClose', function (e) {
+    CloseAssinedVersionWindow();
+    e.preventDefault();
+});
+
+// Assign button handler
+$(document).on('click', '#btnAssign', function (e) {
+    e.preventDefault();
+
+    var userids = $("#txtAV_UserID").text().split(' / ');
+    var AssingedVersionId = parseInt($("#ddlAssignVersion option:selected").val());
+    var UserCurrentVersionId = parseInt($("#CurrentVersionId").val());
+
+    if (!AssingedVersionId) {
+        showMessage("Please select a version to assign.", true);
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "/Release/SaveAssignVersion",
+        traditional: true,
+        data: {
+            assignedVersionId: AssingedVersionId,
+            userIdList: userids,
+            userCurrentVersionId: UserCurrentVersionId
+        },
+        success: function (data) {
+            if (data.success) {
+                showMessage("Version has been assigned to selected users.", false);
+                CloseAssinedVersionWindow();
+                // Refresh all tabs to show updated assignments
+                RebindProductionVersionList();
+                RebindTestVersionList();
+                RebindAllVersionList();
+            } else {
+                showMessage('Error: ' + data.message, true);
+            }
+        },
+        error: function () {
+            showMessage("An error occurred while assigning the version.", true);
+        }
+    });
+}
+
+// --- Assign Version Dialog Handlers (matches old AssignVersion.js) ---
+
+function SubmitAssignVersion() {
+        var assignedVersionId = parseInt($("#ddlAssignVersion").val());
+        var userIdsText = $("#hiddenUserIds").val();
+        var userCurrentVersionId = parseInt($("#CurrentVersionId").val());
+
+        if (!assignedVersionId) {
+            showMessage("Please select a version to assign.", true);
+            return;
+        }
+
+        if (!userIdsText) {
+            showMessage("No users selected.", true);
+            return;
+        }
+    
+
+    // Split user IDs (they're stored as "7 / 14 / 22")
+    var userIds = userIdsText.split(' / ').map(function(id) { return parseInt(id.trim()); });
+
+    $.ajax({
+        type: "POST",
+        url: "/Release/SaveAssignVersion",
+        traditional: true,
+        data: {
+            assignedVersionId: assignedVersionId,
+            userIdList: userIds,
+            userCurrentVersionId: userCurrentVersionId
+        },
+        success: function (data) {
+            if (data.success) {
+                showMessage("Version has been assigned to selected users.", false);
+                HideDialog("AssignVersion_dialog");
+                
+                // Refresh all tabs to show updated assignments
+                RebindProductionVersionList();
+                RebindTestVersionList();
+                RebindAllVersionList();
+            } else {
+                showMessage('Error: ' + data.message, true);
+            }
+        },
+        error: function () {
+            showMessage("An error occurred while assigning the version.", true);
+        }
+    });
 }

@@ -1,0 +1,73 @@
+<link href="~/css/release.css" rel="stylesheet" />
+<div class="container">
+    <div class="hero-unit">
+        <div class="brand">
+            <h1>Update Production Version</h1>
+        </div>
+    </div>
+    <div class="header-image" style="min-height:500px;">
+        @if (Model.TestVersionList.Count > 0)
+        {
+            <span class="page-note">Select Application Version to move into Production</span>
+
+            <div class="page-contain">
+                <!-- Radio buttons with proper alignment -->
+                <div style="margin: 30px 20px 0px 0px;">
+                    @foreach (var item in Model.TestVersionList)
+                    {
+                        var id = "version" + item.AppVersionID.ToString();
+                        <div class="radio-inline-item">
+                            <input id="@id" type="radio" name="newversion" />
+                            <label for="@id">V_@item.Version.ToString()</label>
+                        </div>
+                    }
+                </div>
+
+                <div class="formpage" id="trwhatsnew" style="display:none">
+                    <div class="page-left">
+                        <label></label>
+                    </div>
+                    <div class="page-right">
+                        <div class="production-verion-inner">
+                            <span>WHAT'S NEW IN VERSION</span>
+                            <label id="lblVesion">0</label>
+                        </div>
+                        <ul id="ullist" class="ullist"></ul>
+                        <div class="formpage" style="margin-top:10px;">
+                            <div class="page-left" style="width:84%;">
+                                <input id="txtWhatsNew" class="pversion-text" type="text" />
+                            </div>
+                            <div class="page-right" style="width:15% !important">
+                                <a id="btnAddNew" class="button popup-margin-left" style="float:right;margin-right:6px;margin-top:2px;" href="javascript:void(0);">Add</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="formpage">
+                    <div class="page-left"></div>
+                    <div class="page-right">
+                        <input id="btnCancel" class="btn" type="button" value="Cancel" data-url="@Url.Action("Index", "Release")" />
+                        <input id="btnUpdate" class="button" type="button" value="Update" />
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <span class="page-note textValidation">There is no anymore application available to move into Production</span>
+            <div class="page-contain">
+                <div class="formpage">
+                    <div class="page-left"></div>
+                    <div class="page-right">
+                        <input id="btnCancel" class="btn" type="button" value="Back" data-url="@Url.Action("Index", "Release")" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ReleaseModule/UpdateVersion.js"></script>
+}

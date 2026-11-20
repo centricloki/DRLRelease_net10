@@ -27,6 +27,7 @@
                 $('#tableVersionList').DataTable({
                     destroy: true,
                     data: data,
+                    order: [[0, 'desc']], // 0 is the column index (ID), 'desc' is descending order
                     columns: [
                         { title: "ID", data: 'AppVersionID' },
                         { title: "VERSION", data: 'Version' },

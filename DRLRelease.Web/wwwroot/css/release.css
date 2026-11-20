@@ -1,0 +1,17 @@
+/* wwwroot/css/release.css */
+.radio-inline-item {
+    margin-bottom: 12px;
+}
+
+    .radio-inline-item input[type="radio"] {
+        vertical-align: middle;
+        margin-right: 8px;
+        display: inline-block !important;
+    }
+
+    .radio-inline-item label {
+        vertical-align: middle;
+        display: inline-block !important;
+        margin-bottom: 0 !important;
+        cursor: pointer;
+    }
