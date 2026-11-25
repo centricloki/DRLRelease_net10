@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,7 +117,38 @@ builder.Services.AddControllersWithViews()
 
 var app = builder.Build();
 
-app.UseStaticFiles();
+var staticFileContentTypes =
+    new FileExtensionContentTypeProvider();
+
+staticFileContentTypes.Mappings[".msixbundle"] =
+    "application/vnd.ms-appx.bundle";
+
+staticFileContentTypes.Mappings[".msix"] =
+    "application/vnd.ms-appx";
+
+staticFileContentTypes.Mappings[".appinstaller"] =
+    "application/appinstaller";
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = staticFileContentTypes,
+
+    OnPrepareResponse = context =>
+    {
+        if (context.File.Name.EndsWith(
+            ".msixbundle",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            context.Context.Response.Headers.Append(
+                "Content-Disposition",
+                $"attachment; filename=\"{context.File.Name}\"");
+
+            context.Context.Response.Headers.Append(
+                "X-Content-Type-Options",
+                "nosniff");
+        }
+    }
+});
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

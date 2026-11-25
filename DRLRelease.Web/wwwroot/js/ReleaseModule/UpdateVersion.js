@@ -2,9 +2,21 @@
 
 $(document).ready(function () {
 
+    // Local loader helper for this specific page
+    function setLoading($btn, on, txt) {
+        if (on) {
+            $btn.data('orig', $btn.val()).prop('disabled', true).val(txt || 'Processing...');
+        } else {
+            $btn.prop('disabled', false).val($btn.data('orig') || 'Update');
+        }
+    }
+
     // Enter key triggers Add
     $("#txtWhatsNew").on('keypress', function (event) {
-        if (event.which === 13) { $("#btnAddNew").click(); }
+        if (event.which === 13) {
+            event.preventDefault(); // Prevent form submission on Enter
+            $("#btnAddNew").click();
+        }
     });
 
     // Add note to list
@@ -22,8 +34,9 @@ $(document).ready(function () {
         $(this).parent().remove();
     });
 
-    // Show What's New block when radio is selected
-    $(".radiobuttonlist li input").click(function () {
+    // Show What's New block when radio is selected 
+    // FIX: Changed selector to match the actual name attribute in UpdateVersion.cshtml
+    $('input[name="newversion"]').click(function () {
         $("#trwhatsnew").show();
         $("#lblVesion").html($(this).next().html().replace("V_", ""));
     });
@@ -35,7 +48,11 @@ $(document).ready(function () {
 
     // Update button
     $("#btnUpdate").click(function () {
-        var checked = $(".radiobuttonlist li input:checked");
+        var $btn = $(this);
+
+        // FIX: Changed selector to match the actual name attribute
+        var checked = $('input[name="newversion"]:checked');
+
         if (!checked.length) {
             showMessage("Please select a version.", true);
             return;
@@ -44,25 +61,33 @@ $(document).ready(function () {
         var strAppVersionId = checked.attr("id").replace("version", "");
         var strwhatsnewlist = [];
         if ($("#ullist li").length > 0) {
-            $("#ullist li span").each(function () { strwhatsnewlist.push($(this).text()); });
+            $("#ullist li span").each(function () {
+                strwhatsnewlist.push($(this).text());
+            });
         }
+
+        // Apply loader before AJAX call
+        setLoading($btn, true, 'Updating...');
 
         $.ajax({
             type: "POST",
-            url: _relativeBaseDirectory + "/Release/UpdateProductionVersion",
+            // FIX: Removed undefined _relativeBaseDirectory
+            url: "/Release/UpdateProductionVersion",
             data: JSON.stringify({ 'AppVersionId': strAppVersionId, 'WhatsNewList': strwhatsnewlist }),
-            async: false,
             contentType: 'application/json; charset=utf-8',
             success: function (data) {
                 if (data && data.success) {
                     showMessage("Production Version has been uploaded", false);
-                    window.location.href = _relativeBaseDirectory + '/Release/Index';
+                    // FIX: Removed undefined _relativeBaseDirectory
+                    window.location.href = '/Release/Index';
                 } else {
                     showMessage('Error: ' + (data ? data.message : 'unknown'), true);
+                    setLoading($btn, false); // Reset button on error
                 }
             },
             error: function () {
                 showMessage("An unexpected error occurred.", true);
+                setLoading($btn, false); // Reset button on error
             }
         });
     });

@@ -15,3 +15,8 @@
         margin-bottom: 0 !important;
         cursor: pointer;
     }
+
+.production-verion-inner {
+    text-align: left;
+    margin-bottom: 10px;
+}

@@ -14,3 +14,5 @@ DRLRelease.Web/IPadApp/
 DRLRelease.Web/Keys/
 /DRLRelease.Web/Logs
 /DRLRelease.Web/wwwroot/IPadApp/1.9.97
+/publish
+/publish.zip

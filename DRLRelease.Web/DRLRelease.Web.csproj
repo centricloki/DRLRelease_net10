@@ -7,6 +7,12 @@
     <AssemblyName>DRLRelease.Web</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="web.config" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Pinned to exact .NET 10 version -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="Serilog" Version="4.0.0" />
@@ -18,5 +24,11 @@
     <ProjectReference Include="..\DRLRelease.Common\DRLRelease.Common.csproj" />
     <ProjectReference Include="..\DRLRelease.DataModel\DRLRelease.DataModel.csproj" />
     <ProjectReference Include="..\DRLRelease.Notification\DRLRelease.Notification.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="web.config">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
