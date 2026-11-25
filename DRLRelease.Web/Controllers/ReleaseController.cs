@@ -289,7 +289,7 @@ namespace DRLRelease.Web.Controllers
             {
                 if (model.fileUpIPA != null && model.fileUpPLIST != null && model.fileUpIPA.Length > 0 && model.fileUpPLIST.Length > 0)
                 {
-                    // 1. BACKEND VALIDATION: Check file extensions (matches old CheckFileType logic)
+                    // 1. BACKEND VALIDATION: Check file extensions (UWP: .msixbundle + .xml)
                     string ipaExt = Path.GetExtension(model.fileUpIPA.FileName).TrimStart('.').ToUpperInvariant();
                     string plistExt = Path.GetExtension(model.fileUpPLIST.FileName).TrimStart('.').ToUpperInvariant();
 
@@ -334,7 +334,7 @@ namespace DRLRelease.Web.Controllers
 
                             // Save to Database via Dapper
                             var appversion = _common.GetAppVersion(versionDetails.Version) ?? new AppVersion();
-                            appversion.DownloadURL = versionDetails.DownloadURL.Replace(".ipa", ".plist").Trim();
+                            appversion.DownloadURL = versionDetails.DownloadURL.Replace(".msixbundle", ".xml").Trim();
                             appversion.Version = versionDetails.Version;
                             appversion.IsActive = true;
                             appversion.IsProduction = false;
@@ -351,7 +351,7 @@ namespace DRLRelease.Web.Controllers
                         }
                         else
                         {
-                            ModelState.AddModelError("", "Could not extract version from the .plist file. Ensure it is a valid iOS plist.");
+                            ModelState.AddModelError("", "Could not extract version from the .xml file. Ensure it is a valid AppxManifest.");
                         }
                     }
                     catch (Exception ex)
@@ -363,7 +363,7 @@ namespace DRLRelease.Web.Controllers
                 else
                 {
                     // Matches old app's exact error message for missing files
-                    ModelState.AddModelError("", "Either <b>IPA</b> or <b>PLIST</b> file are missing. Try to upload again.");
+                    ModelState.AddModelError("", "Either <b>MSIXBUNDLE</b> or <b>XML</b> file are missing. Try to upload again.");
                 }
             }
             return View(model);

@@ -23,7 +23,7 @@
             url: "/Release/VersionList", // Fixed: removed _relativeBaseDirectory
             data: {},
             async: false,
-            success: function (data) {
+            success: function(data) {
                 $('#tableVersionList').DataTable({
                     destroy: true,
                     data: data,
@@ -35,14 +35,14 @@
                         {
                             title: "IS PRODUCTION",
                             data: null,
-                            render: function (data, type, row) {
+                            render: function(data, type, row) {
                                 return row.IsProduction ? '<span>Yes</span>' : '<span>No</span>';
                             }
                         },
                         {
                             title: "ACTIVE",
                             data: null,
-                            render: function (data, type, row) {
+                            render: function(data, type, row) {
                                 return row.IsActive ? '<span>Yes</span>' : '<span>No</span>';
                             }
                         },
@@ -50,15 +50,14 @@
                         {
                             title: "ACTION",
                             data: null,
-                            render: function (data, type, row) {
-                                if (row.IsAction) {
-                                    if (row.IsActive) {
-                                        return '<a href="javascript:updatestatus(' + row.AppVersionID + ',0)">InActive</a>';
-                                    } else {
-                                        return '<a href="javascript:updatestatus(' + row.AppVersionID + ',1)">Active</a>';
-                                    }
+                            render: function(data, type, row) {
+                                // Toggle both ways, driven directly by IsActive.
+                                // (Optional guard: add && !row.IsProduction to the
+                                //  IsActive branch to stop deactivating the live build.)
+                                if (row.IsActive) {
+                                    return '<a href="javascript:void(0)" onclick="updatestatus(' + row.AppVersionID + ',0,this)">InActive</a>';
                                 } else {
-                                    return "";
+                                    return '<a href="javascript:void(0)" onclick="updatestatus(' + row.AppVersionID + ',1,this)">Active</a>';
                                 }
                             }
                         }
@@ -69,42 +68,32 @@
         });
     }
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         BindList();
     });
 
-    function updatestatus(aapVersionId, status) {
-        // Find the specific link that was clicked
-        var $link = $('a[href="javascript:updatestatus(' + aapVersionId + ',' + status + ')"]');
+    function updatestatus(aapVersionId, status, el) {
+        var $link = $(el);
         var originalText = $link.text();
-
-        // Show inline loader on the link itself
         $link.text('Saving...').css('pointer-events', 'none').css('opacity', '0.6');
 
         $.ajax({
             type: "POST",
             url: "/Release/UpdateAppVersion", // Fixed: removed _relativeBaseDirectory
-            datatype: 'json',
-            data: JSON.stringify({ 'aapVersionId': aapVersionId, 'status': status }),
-            async: false,
-            contentType: 'application/json; charset=utf-8',
-            success: function (data) {
-                if (data.success) { // Note: .NET JSON uses lowercase 'success' by default unless configured otherwise
+            traditional: true,                       // <-- form-encode arrays/scalars
+            data: { aapVersionId: aapVersionId, status: status },  // <-- NO JSON.stringify, NO contentType
+            success: function(data) {
+                // controller returns PascalCase (Success/Message) because PropertyNamingPolicy = null
+                if (data.Success) {
                     showMessage("Application Version has been updated.", false);
-                    BindList();
+                    BindList();                       // re-fetch from DB -> correct toggle now
                 } else {
-                    showMessage('Error: ' + data.message, true);
-                    // Revert text on error
+                    showMessage('Error: ' + data.Message, true);
                     $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
                 }
             },
-            error: function () {
+            error: function() {
                 showMessage("An error occurred while updating the status.", true);
-                // Revert text on error
-                $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
-            },
-            complete: function () {
-                // Ensure it reverts even on success (since BindList() redraws the table anyway)
                 $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
             }
         });
@@ -112,15 +101,16 @@
 
     function applyalignment() {
         if ($("#tableVersionList tr").length > 0) {
-            $("#tableVersionList thead tr").each(function () {
+            $("#tableVersionList thead tr").each(function() {
                 $(this).children('th').eq(2).addClass("align_left");
                 $(this).children('th').eq(5).addClass("align_left");
             });
             var rows = $("#tableVersionList").dataTable().fnGetNodes();
-            $(rows).each(function () {
+            $(rows).each(function() {
                 $(this).children('td').eq(2).addClass("align_left");
-                $(this).children('td').eq(5).addClass("align_left");
+                $(this).children('td').eq(5).addClass('align_left');
             });
         }
     }
+
 </script>

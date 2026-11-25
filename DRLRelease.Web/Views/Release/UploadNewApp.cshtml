@@ -111,7 +111,7 @@
             }
 
             if ($('#fileUpPLIST').val() == "") {
-                $('#fileUpPLIST').next().html("Please upload .PLIST file");
+                $('#fileUpPLIST').next().html("Please upload .xml file");
                 $('#fileUpPLIST').next().removeClass('field-validation-valid').addClass('field-validation-error');
                 result = false;
             } else if (!checkfile('fileUpPLIST', 'xml')) {

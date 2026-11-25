@@ -175,6 +175,17 @@ $(document).ready(function () {
         setButtonLoading($btn, false);
     });
 
+    // Export buttons
+    $("#btnProductionExport").click(function () {
+        exportTableToCSV('#tableProductionList', 'ProductionVersionUsers_' + new Date().toISOString().slice(0,10) + '.csv');
+    });
+    $("#btnTestExport").click(function () {
+        exportTableToCSV('#tableTestList', 'TestVersionUsers_' + new Date().toISOString().slice(0,10) + '.csv');
+    });
+    $("#btnAllUserExport").click(function () {
+        exportTableToCSV('#tableAllList', 'AllUsers_' + new Date().toISOString().slice(0,10) + '.csv');
+    });
+
     // Assign popup openers with loader
     $("#btnProductionAssignVersion").click(function () {
         var $btn = $(this);
@@ -277,3 +288,61 @@ $(document).on('submit', 'form[action*="/Release/UploadNewApp"]', function () {
         $btn.prop('disabled', true).text('Uploading...');
     }
 });
+
+// ============================================================
+// EXPORT TABLE TO CSV
+// ============================================================
+function exportTableToCSV(tableId, filename) {
+    var table = $(tableId).DataTable();
+    var rows = table.rows({ search: 'applied' }).data(); // Get filtered rows
+    
+    if (rows.length === 0) {
+        showMessage("No data to export.", true);
+        return;
+    }
+
+    var csv = [];
+    
+    // Add headers (skip first checkbox column)
+    var headers = [];
+    table.columns().every(function() {
+        var colTitle = this.header().innerText;
+        if (colTitle && colTitle !== '') { // Skip checkbox column
+            headers.push('"' + colTitle.replace(/"/g, '""') + '"');
+        }
+    });
+    csv.push(headers.join(','));
+
+    // Add data rows (skip first checkbox column)
+    rows.each(function(rowData) {
+        var row = [];
+        // Skip first column (checkbox) - start from index 1
+        for (var i = 1; i < rowData.length; i++) {
+            var cell = rowData[i];
+            if (cell === null || cell === undefined) {
+                row.push('""');
+            } else {
+                // Handle objects (from render functions)
+                if (typeof cell === 'object') {
+                    row.push('""');
+                } else {
+                    row.push('"' + String(cell).replace(/"/g, '""') + '"');
+                }
+            }
+        }
+        csv.push(row.join(','));
+    });
+
+    // Create and download CSV
+    var csvContent = csv.join('\n');
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
