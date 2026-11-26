@@ -69,6 +69,18 @@ function BindUserTable(tableId, apiUrl, cssType) {
             $(tableId).DataTable({
                 destroy: true,
                 data: rows,
+                autoWidth: false, // <--- CRITICAL: Stops DataTables from guessing widths
+                columnDefs: [
+                    { width: "5%",  targets: 0, orderable: false }, // Checkbox
+                    { width: "10%", targets: 1 }, // User ID
+                    { width: "20%", targets: 2 }, // User Name
+                    { width: "15%", targets: 3 }, // Current Version
+                    { width: "10%", targets: 4 }, // Updated
+                    { width: "15%", targets: 5 }, // Assign Version
+                    { width: "10%", targets: 6 }, // IOS Version
+                    { width: "0%",  targets: 7, visible: false },   // Hidden ID
+                    { width: "15%", targets: 8 }  // IPad Login
+                ],
                 columns: [
                     { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
                     { title: "USER ID", data: 'UserID' },
@@ -294,7 +306,7 @@ $(document).on('submit', 'form[action*="/Release/UploadNewApp"]', function () {
 // ============================================================
 function exportTableToCSV(tableId, filename) {
     var table = $(tableId).DataTable();
-    var rows = table.rows({ search: 'applied' }).data(); // Get filtered rows
+    var rows = table.rows({ search: 'applied' }).data();
     
     if (rows.length === 0) {
         showMessage("No data to export.", true);
@@ -303,34 +315,33 @@ function exportTableToCSV(tableId, filename) {
 
     var csv = [];
     
-    // Add headers (skip first checkbox column)
-    var headers = [];
-    table.columns().every(function() {
-        var colTitle = this.header().innerText;
-        if (colTitle && colTitle !== '') { // Skip checkbox column
-            headers.push('"' + colTitle.replace(/"/g, '""') + '"');
-        }
-    });
-    csv.push(headers.join(','));
+    // Headers (skip checkbox column)
+    csv.push('"USER ID","USER NAME","CURRENT VERSION","UPDATED","ASSIGN VERSION","IOS VERSION","IPAD LOGIN"');
 
-    // Add data rows (skip first checkbox column)
+    // Extract data from each row
     rows.each(function(rowData) {
-        var row = [];
-        // Skip first column (checkbox) - start from index 1
-        for (var i = 1; i < rowData.length; i++) {
-            var cell = rowData[i];
-            if (cell === null || cell === undefined) {
-                row.push('""');
-            } else {
-                // Handle objects (from render functions)
-                if (typeof cell === 'object') {
-                    row.push('""');
-                } else {
-                    row.push('"' + String(cell).replace(/"/g, '""') + '"');
-                }
+        // rowData is an object with properties like UserID, FirstName, LastName, etc.
+        var userId = rowData.UserID || '';
+        var userName = (rowData.FirstName || '') + ' ' + (rowData.LastName || '');
+        var currentVersion = rowData.CurrentVersionName || '';
+        var updated = rowData.IsUpdated ? 'Yes' : 'No';
+        var assignVersion = rowData.AssignedVersionName || '';
+        var iosVersion = rowData.IOSVersion || '';
+        
+        // Format date
+        var lastLogin = '';
+        if (rowData.LastLoginDateTime) {
+            var d = new Date(rowData.LastLoginDateTime);
+            if (!isNaN(d.getTime())) {
+                var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                var h = d.getHours(), ap = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                var mi = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+                lastLogin = d.getDate() + "-" + monthNames[d.getMonth()] + "-" + d.getFullYear() + " " + h + ":" + mi + " " + ap;
             }
         }
-        csv.push(row.join(','));
+        
+        csv.push('"' + userId + '","' + userName + '","' + currentVersion + '","' + updated + '","' + assignVersion + '","' + iosVersion + '","' + lastLogin + '"');
     });
 
     // Create and download CSV
