@@ -2,16 +2,20 @@
     ViewData["Title"] = "App Versions";
 }
 
+@section styles {
+    <link href="~/css/appversion.css" rel="stylesheet" />
+}
+
 <div class="container mt-4">
     <h2>App Versions</h2>
-    
+
     <!-- Filter Button -->
     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#filterModal">
         Filter Versions
     </button>
 
     <!-- DataTable -->
-    <table id="versionTable" class="table table-striped table-bordered" style="width:100%">
+    <table id="versionTable" class="table table-striped table-bordered">
         <thead>
             <tr>
                 <th>Version</th>
@@ -52,3 +56,7 @@
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script src="~/js/appversion.js"></script>
+}

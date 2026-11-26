@@ -1,29 +1,29 @@
 @model DRLRelease.Web.Models.AssignVersionModel
 
-<div class="web_dialog_header" style="background:#333F45;color:#fff;padding:10px 15px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-weight:bold;">Assign Version</span>
-    <a href="javascript:void(0);" class="dialog-close" style="color:#fff;font-weight:bold;text-decoration:none;font-size:18px;">&times;</a>
+<div class="web_dialog_header assign-dialog-header">
+    <span class="assign-dialog-title">Assign Version</span>
+    <a href="javascript:void(0);" class="dialog-close">&times;</a>
 </div>
-<div class="web_dialog_content" style="padding:20px;background:#fff;">
+<div class="web_dialog_content assign-dialog-content">
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div style="color:#856404;background:#fff3cd;border:1px solid #ffeeba;padding:10px;margin-bottom:15px;border-radius:4px;">@Model.ErrorMessage</div>
+        <div class="assign-dialog-error">@Model.ErrorMessage</div>
     }
-    <div style="margin-bottom:15px;">
-        <label style="font-weight:bold;display:block;margin-bottom:5px;">Selected Users:</label>
-        <p style="margin:0;">@Model.UserNames</p>
+    <div class="assign-dialog-field">
+        <label class="assign-dialog-label">Selected Users:</label>
+        <p class="assign-dialog-value">@Model.UserNames</p>
         <input type="hidden" id="hiddenUserIds" value="@Model.UserIDs" />
     </div>
-    <div style="margin-bottom:15px;">
-        <label style="font-weight:bold;display:block;margin-bottom:5px;">Current Version:</label>
-        <p style="margin:0;">@Model.CurrentVersion</p>
+    <div class="assign-dialog-field">
+        <label class="assign-dialog-label">Current Version:</label>
+        <p class="assign-dialog-value">@Model.CurrentVersion</p>
         <input type="hidden" id="CurrentVersionId" value="@Model.CurrentVersionId" />
     </div>
-    <div style="margin-bottom:20px;">
-        <label style="font-weight:bold;display:block;margin-bottom:5px;">Assign New Version:</label>
+    <div class="assign-dialog-field-lg">
+        <label class="assign-dialog-label">Assign New Version:</label>
         @if (Model.AssignList != null && Model.AssignList.Any())
         {
-            <select id="ddlAssignVersion" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" @(Model.IsDisabledButton ? "disabled" : "")>
+            <select id="ddlAssignVersion" class="form-control assign-dialog-select" @(Model.IsDisabledButton ? "disabled" : "")>
                 <option value="">-- Select Version --</option>
                 @foreach (var item in Model.AssignList)
                 {
@@ -33,11 +33,11 @@
         }
         else
         {
-            <p style="color:red;">No versions available for assignment.</p>
+            <p class="assign-dialog-empty">No versions available for assignment.</p>
         }
     </div>
-    <div style="text-align:right;margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
-        <button type="button" id="btnassingdialogcancel" class="btn btn-secondary" style="margin-right:10px;padding:6px 15px;">Cancel</button>
-        <button type="button" id="btnAssign" class="btn btn-primary" style="padding:6px 15px;" @(Model.IsDisabledButton ? "disabled" : "")>Assign</button>
+    <div class="assign-dialog-footer">
+        <button type="button" id="btnassingdialogcancel" class="btn btn-secondary assign-btn-cancel">Cancel</button>
+        <button type="button" id="btnAssign" class="btn btn-primary assign-btn-primary" @(Model.IsDisabledButton ? "disabled" : "")>Assign</button>
     </div>
 </div>

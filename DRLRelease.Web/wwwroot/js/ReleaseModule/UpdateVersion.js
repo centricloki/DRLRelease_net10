@@ -23,8 +23,10 @@ $(document).ready(function () {
     $("#btnAddNew").click(function () {
         var txt = $("#txtWhatsNew").val();
         if (txt) {
-            var htmlli = "<li><span>" + txt + "</span><a href='javascript:void(0);' class='remove-note' style='padding-left:5px;'>X</a></li>";
-            $("#ullist").append(htmlli);
+            var $li = $('<li>')
+                .append($('<span>').text(txt))
+                .append($('<a href="javascript:void(0);" class="remove-note">X</a>'));
+            $("#ullist").append($li);
             $("#txtWhatsNew").val('').focus();
         }
     });
@@ -34,8 +36,7 @@ $(document).ready(function () {
         $(this).parent().remove();
     });
 
-    // Show What's New block when radio is selected 
-    // FIX: Changed selector to match the actual name attribute in UpdateVersion.cshtml
+    // Show What's New block when radio is selected
     $('input[name="newversion"]').click(function () {
         $("#trwhatsnew").show();
         $("#lblVesion").html($(this).next().html().replace("V_", ""));
@@ -49,8 +50,6 @@ $(document).ready(function () {
     // Update button
     $("#btnUpdate").click(function () {
         var $btn = $(this);
-
-        // FIX: Changed selector to match the actual name attribute
         var checked = $('input[name="newversion"]:checked');
 
         if (!checked.length) {
@@ -58,7 +57,12 @@ $(document).ready(function () {
             return;
         }
 
-        var strAppVersionId = checked.attr("id").replace("version", "");
+        var appVersionId = parseInt(checked.attr("id").replace("version", ""), 10);
+        if (isNaN(appVersionId) || appVersionId <= 0) {
+            showMessage("Invalid version selected.", true);
+            return;
+        }
+
         var strwhatsnewlist = [];
         if ($("#ullist li").length > 0) {
             $("#ullist li span").each(function () {
@@ -66,28 +70,25 @@ $(document).ready(function () {
             });
         }
 
-        // Apply loader before AJAX call
         setLoading($btn, true, 'Updating...');
 
         $.ajax({
             type: "POST",
-            // FIX: Removed undefined _relativeBaseDirectory
-            url: "/Release/UpdateProductionVersion",
-            data: JSON.stringify({ 'AppVersionId': strAppVersionId, 'WhatsNewList': strwhatsnewlist }),
+            url: getAppUrl("/Release/UpdateProductionVersion"),
+            data: JSON.stringify({ AppVersionId: appVersionId, WhatsNewList: strwhatsnewlist }),
             contentType: 'application/json; charset=utf-8',
             success: function (data) {
                 if (data && data.success) {
                     showMessage("Production Version has been uploaded", false);
-                    // FIX: Removed undefined _relativeBaseDirectory
-                    window.location.href = '/Release/Index';
+                    window.location.href = getAppUrl('/Release/Index');
                 } else {
                     showMessage('Error: ' + (data ? data.message : 'unknown'), true);
-                    setLoading($btn, false); // Reset button on error
+                    setLoading($btn, false);
                 }
             },
             error: function () {
                 showMessage("An unexpected error occurred.", true);
-                setLoading($btn, false); // Reset button on error
+                setLoading($btn, false);
             }
         });
     });

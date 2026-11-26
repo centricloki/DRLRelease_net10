@@ -3,41 +3,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    /* Force left alignment for all content and headers */
-    .dataTables_wrapper table.dataTable th,
-    .dataTables_wrapper table.dataTable td {
-        text-align: left !important;
-        padding: 8px 10px !important;
-        vertical-align: middle;
-    }
-
-    /* Fix overlapping sort icons in headers */
-    .dataTables_wrapper .dataTables_scrollHead th,
-    .dataTables_wrapper table.dataTable thead th {
-        padding-right: 22px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .dataTables_wrapper table.dataTable thead th.sorting,
-    .dataTables_wrapper table.dataTable thead th.sorting_asc,
-    .dataTables_wrapper table.dataTable thead th.sorting_desc {
-        background-position: right 8px center !important;
-    }
-
-    /* Truncate long DOWNLOADURL text so rows stay one line tall */
-    .dataTables_wrapper table.dataTable td:nth-child(3) {
-        max-width: 420px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Keep the table filling the container */
-    .dataTables_wrapper { width: 100%; }
-</style>
+@section styles {
+    <link href="~/css/ReleaseModule/AppVersions.css" rel="stylesheet" />
+}
 
 <div id="appversionlist">
     <div class="container">
@@ -46,118 +14,12 @@
                 <h1>App Version List</h1>
             </div>
         </div>
-        <div class="header-image" style="min-height:600px">
+        <div class="header-image">
             <table id="tableVersionList" class="display" width="100%"></table>
         </div>
     </div>
 </div>
 
-<script type="text/javascript">
-    function BindList() {
-        $.ajax({
-            type: "POST",
-            url: "/Release/VersionList", // Fixed: removed _relativeBaseDirectory
-            data: {},
-            async: false,
-            success: function(data) {
-                $('#tableVersionList').DataTable({
-                    destroy: true,
-                    data: data,
-                    autoWidth: false, // <--- CRITICAL: stops DataTables guessing widths
-                    columnDefs: [
-                        { width: "6%",  targets: 0 }, // ID
-                        { width: "10%", targets: 1 }, // VERSION
-                        { width: "40%", targets: 2 }, // DOWNLOADURL (longest)
-                        { width: "12%", targets: 3 }, // IS PRODUCTION
-                        { width: "10%", targets: 4 }, // ACTIVE
-                        { width: "10%", targets: 5 }, // WHATS NEW
-                        { width: "12%", targets: 6 }  // ACTION
-                    ],
-                    order: [[0, 'desc']], // 0 is the column index (ID), 'desc' is descending order
-                    columns: [
-                        { title: "ID", data: 'AppVersionID' },
-                        { title: "VERSION", data: 'Version' },
-                        { title: "DOWNLOADURL", data: 'DownloadURL' },
-                        {
-                            title: "IS PRODUCTION",
-                            data: null,
-                            render: function(data, type, row) {
-                                return row.IsProduction ? '<span>Yes</span>' : '<span>No</span>';
-                            }
-                        },
-                        {
-                            title: "ACTIVE",
-                            data: null,
-                            render: function(data, type, row) {
-                                return row.IsActive ? '<span>Yes</span>' : '<span>No</span>';
-                            }
-                        },
-                        { title: "WHATS NEW", data: 'WhatsNew' },
-                        {
-                            title: "ACTION",
-                            data: null,
-                            render: function(data, type, row) {
-                                // Toggle both ways, driven directly by IsActive.
-                                // (Optional guard: add && !row.IsProduction to the
-                                //  IsActive branch to stop deactivating the live build.)
-                                if (row.IsActive) {
-                                    return '<a href="javascript:void(0)" onclick="updatestatus(' + row.AppVersionID + ',0,this)">InActive</a>';
-                                } else {
-                                    return '<a href="javascript:void(0)" onclick="updatestatus(' + row.AppVersionID + ',1,this)">Active</a>';
-                                }
-                            }
-                        }
-                    ]
-                });
-                // applyalignment() is now redundant since CSS forces left-alignment
-                // but leaving it here is harmless
-            }
-        });
-    }
-
-    $(document).ready(function() {
-        BindList();
-    });
-
-    function updatestatus(aapVersionId, status, el) {
-        var $link = $(el);
-        var originalText = $link.text();
-        $link.text('Saving...').css('pointer-events', 'none').css('opacity', '0.6');
-
-        $.ajax({
-            type: "POST",
-            url: "/Release/UpdateAppVersion", // Fixed: removed _relativeBaseDirectory
-            traditional: true,                       // <-- form-encode arrays/scalars
-            data: { aapVersionId: aapVersionId, status: status },  // <-- NO JSON.stringify, NO contentType
-            success: function(data) {
-                // controller returns PascalCase (Success/Message) because PropertyNamingPolicy = null
-                if (data.Success) {
-                    showMessage("Application Version has been updated.", false);
-                    BindList();                       // re-fetch from DB -> correct toggle now
-                } else {
-                    showMessage('Error: ' + data.Message, true);
-                    $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
-                }
-            },
-            error: function() {
-                showMessage("An error occurred while updating the status.", true);
-                $link.text(originalText).css('pointer-events', 'auto').css('opacity', '1');
-            }
-        });
-    }
-
-    function applyalignment() {
-        if ($("#tableVersionList tr").length > 0) {
-            $("#tableVersionList thead tr").each(function() {
-                $(this).children('th').eq(2).addClass("align_left");
-                $(this).children('th').eq(5).addClass("align_left");
-            });
-            var rows = $("#tableVersionList").dataTable().fnGetNodes();
-            $(rows).each(function() {
-                $(this).children('td').eq(2).addClass("align_left");
-                $(this).children('td').eq(5).addClass('align_left');
-            });
-        }
-    }
-
-</script>
+@section scripts {
+    <script src="~/js/ReleaseModule/appversion.js"></script>
+}

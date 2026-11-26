@@ -1,0 +1,40 @@
+/* AppVersions page styles */
+/* Force left alignment for all content and headers */
+.dataTables_wrapper table.dataTable th,
+.dataTables_wrapper table.dataTable td {
+    text-align: left !important;
+    padding: 8px 10px !important;
+    vertical-align: middle;
+}
+
+/* Fix overlapping sort icons in headers */
+.dataTables_wrapper .dataTables_scrollHead th,
+.dataTables_wrapper table.dataTable thead th {
+    padding-right: 22px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dataTables_wrapper table.dataTable thead th.sorting,
+.dataTables_wrapper table.dataTable thead th.sorting_asc,
+.dataTables_wrapper table.dataTable thead th.sorting_desc {
+    background-position: right 8px center !important;
+}
+
+/* Truncate long DOWNLOADURL text so rows stay one line tall */
+.dataTables_wrapper table.dataTable td:nth-child(3) {
+    max-width: 420px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Keep the table filling the container */
+.dataTables_wrapper {
+    width: 100%;
+}
+
+#appversionlist .header-image {
+    min-height: 600px;
+}

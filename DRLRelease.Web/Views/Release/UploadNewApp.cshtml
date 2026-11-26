@@ -4,6 +4,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@section styles {
+    <link href="~/css/ReleaseModule/UploadNewApp.css" rel="stylesheet" />
+}
+
 @using (Html.BeginForm("UploadNewApp", "Release", FormMethod.Post, new { enctype = "multipart/form-data", @id = "formuploadnewapp" }))
 {
     @Html.AntiForgeryToken()
@@ -14,13 +18,13 @@
                 <h1>Upload New Application Version</h1>
             </div>
         </div>
-        <div class="header-image" style="min-height:500px;">
+        <div class="header-image header-image-upload">
             <span class="page-note"> @Html.DisplayFor(m => m.FileSizeNote)</span>
             @Html.ValidationSummary(true)
             <span class="message-success">@ViewBag.result</span>
             <div class="page-contain">
 
-                <!-- IPA row: NOW WRAPPED in formpage (this was the missing piece) -->
+                <!-- IPA row -->
                 <div class="formpage">
                     <div class="page-left">
                         <label>MSIXBUNDLE :</label>
@@ -58,85 +62,6 @@
     </div>
 }
 
-<script type="text/javascript">
-    //<![CDATA[
-    function getNameFromPath(strFilepath) {
-        var objRE = new RegExp(/([^\/\\]+)$/);
-        var strName = objRE.exec(strFilepath);
-        return strName ? strName[0] : null;
-    }
-
-    function checkfile(ctrlid, ext) {
-        var $ctrl = $('#' + ctrlid);
-        var $msg = $ctrl.next('.field-validation-error, .field-validation-valid');
-        $msg.removeClass('field-validation-error').addClass('field-validation-valid').text("");
-
-        var filepath = $ctrl.val();
-        if (!filepath) return true;
-
-        var file = getNameFromPath(filepath);
-        if (file != null) {
-            var extension = file.substr((file.lastIndexOf('.') + 1)).toLowerCase();
-            if (extension === ext.toLowerCase()) {
-                return true;
-            } else {
-                $msg.text("You can upload only ." + ext + " extension file");
-                $msg.removeClass('field-validation-valid').addClass('field-validation-error');
-                return false;
-            }
-        }
-        return true;
-    }
-
-    $(document).ready(function() {
-        $("#btnUploadClear").click(function(e) {
-            $('#fileUpPLIST').val("");
-            $('#fileUpIPA').val("");
-            $('#fileUpPLIST').next().removeClass('field-validation-error').addClass('field-validation-valid').text("");
-            $('#fileUpIPA').next().removeClass('field-validation-error').addClass('field-validation-valid').text("");
-        });
-
-        $(document).on("click", "#btnSubmit", function(e) {
-            $('#fileUpPLIST').next().removeClass('field-validation-error').addClass('field-validation-valid').text("");
-            $('#fileUpIPA').next().removeClass('field-validation-error').addClass('field-validation-valid').text ("");
-
-            var result = true;
-
-            if ($('#fileUpIPA').val() == "") {
-                $('#fileUpIPA').next().html("Please upload .msixbundle file");
-                $('#fileUpIPA').next().removeClass('field-validation-valid').addClass('field-validation-error');
-                result = false;
-            } else if (!checkfile('fileUpIPA', 'msixbundle')) {
-                result = false;
-            }
-
-            if ($('#fileUpPLIST').val() == "") {
-                $('#fileUpPLIST').next().html("Please upload .xml file");
-                $('#fileUpPLIST').next().removeClass('field-validation-valid').addClass('field-validation-error');
-                result = false;
-            } else if (!checkfile('fileUpPLIST', 'xml')) {
-                result = false;
-            }
-
-            if (!result) {
-                e.preventDefault();
-            }
-            return result;
-        });
-
-        $("#fileUpIPA").change(function() {
-            checkfile('fileUpIPA', 'msixbundle');
-        });
-
-        $("#fileUpPLIST").change(function() {
-            checkfile('fileUpPLIST', 'xml');
-        });
-
-        // Add button loader on form submit
-        $('form').on('submit', function () {
-            var $btn = $('#btnUploadApp');
-            setButtonLoading($btn, true, 'Uploading...');
-        });
-    });
-    //]]>
-</script>
+@section scripts {
+    <script src="~/js/ReleaseModule/UploadNewApp.js"></script>
+}

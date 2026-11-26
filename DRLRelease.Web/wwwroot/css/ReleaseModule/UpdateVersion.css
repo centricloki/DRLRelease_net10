@@ -1,0 +1,87 @@
+/* UpdateVersion page styles */
+.radio-inline-item {
+    margin-bottom: 12px;
+}
+
+    .radio-inline-item input[type="radio"] {
+        vertical-align: middle;
+        margin-right: 8px;
+        display: inline-block !important;
+    }
+
+    .radio-inline-item label {
+        vertical-align: middle;
+        display: inline-block !important;
+        margin-bottom: 0 !important;
+        cursor: pointer;
+    }
+
+.production-verion-inner {
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+/* Left-align heading and radios */
+.page-note {
+    text-align: left !important;
+}
+
+.header-image-subpage {
+    min-height: 500px;
+}
+
+.update-version-radios {
+    margin: 30px 20px 0 0;
+}
+
+#trwhatsnew {
+    display: none;
+}
+
+/* WHAT'S NEW section - ONLY style children, never the container itself */
+#trwhatsnew > .page-left {
+    display: none !important;
+}
+
+#trwhatsnew > .page-right {
+    width: 100% !important;
+    text-align: left !important;
+}
+
+/* Inner textbox row - use flexbox for alignment */
+#trwhatsnew .formpage {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+}
+
+#trwhatsnew .formpage .page-left {
+    flex: 1;
+}
+
+#trwhatsnew .formpage .page-right {
+    flex: 0 0 auto;
+}
+
+/* Bottom buttons row */
+.page-contain > .formpage:last-child {
+    display: flex !important;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.page-contain > .formpage:last-child > .page-left {
+    display: none !important;
+}
+
+.page-contain > .formpage:last-child > .page-right {
+    width: 100% !important;
+}
+
+.page-contain > .formpage:last-child input[type="button"] {
+    float: none !important;
+}
+
+.remove-note {
+    padding-left: 5px;
+}

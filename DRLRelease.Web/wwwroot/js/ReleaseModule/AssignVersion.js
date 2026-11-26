@@ -1,40 +1,56 @@
-
-//$('#AssignVersion_dialog .web_dialog_header').mousedown(handle_mousedown);
-
-function CloseAssinedVersionWindow() {
+// Assign Version modal popup handlers
+$(document).on('click', '#btnassingdialogcancel, .dialog-close', function (e) {
+    e.preventDefault();
     HideDialog("AssignVersion_dialog");
-}
-$("#btnassingdialogcancel").click(function (e) {
-    CloseAssinedVersionWindow();
 });
-$("#btndialogClose").click(function (e) {
-    CloseAssinedVersionWindow();
-});
-$("#btnAssign").click(function (e) {
-    var userids = $("#txtAV_UserID").text().split(' / ');
-    var AssingedVersion = $("#ddlAssignVersion option:selected").text();
-    var AssingedVersionId = parseInt($("#ddlAssignVersion option:selected").val());
 
-    var UserIDS = [];
-    UserIDS = userids;
+$(document).on('click', '#btnAssign', function (e) {
+    e.preventDefault();
+    var $btn = $(this);
+    var assignedVersionId = parseInt($("#ddlAssignVersion").val(), 10);
+    var userIdsText = $("#hiddenUserIds").val();
+    var userCurrentVersionId = parseInt($("#CurrentVersionId").val(), 10);
+
+    if (!assignedVersionId) {
+        showMessage("Please select a version to assign.", true);
+        return;
+    }
+    if (!userIdsText) {
+        showMessage("No users selected.", true);
+        return;
+    }
+
+    var userIds = userIdsText.split(' / ').map(function (id) {
+        return parseInt(id.trim(), 10);
+    });
+
+    setButtonLoading($btn, true, 'Assigning...');
 
     $.ajax({
         type: "POST",
-        url: _relativeBaseDirectory + "/Release/SaveAssignVersion",
-        datatype: 'json',
-        data: JSON.stringify({ 'AssingedVersionId': AssingedVersionId, 'UserIdList': UserIDS, 'UserCurrentVersionId': parseInt($("#CurrentVersionId").val()) }),
-        async: false,
-        contentType: 'application/json; charset=utf-8',
+        url: getAppUrl("/Release/SaveAssignVersion"),
+        traditional: true,
+        data: {
+            assignedVersionId: assignedVersionId,
+            userIdList: userIds,
+            userCurrentVersionId: userCurrentVersionId
+        },
         success: function (data) {
-            if (data.Success) {
+            if (data && data.success) {
                 showMessage("Version has been assigned to selected users.", false);
-                RebindAllTabs();                       // refresh Production + Test + All
-                CloseAssinedVersionWindow();
+                HideDialog("AssignVersion_dialog");
+                RebindProductionVersionList();
+                RebindTestVersionList();
+                RebindAllVersionList();
+            } else {
+                showMessage('Error: ' + (data ? data.message : 'unknown'), true);
             }
-            else {
-                showMessage('Error: ' + data.Message, true);
-            }
+        },
+        error: function () {
+            showMessage("An error occurred while assigning the version.", true);
+        },
+        complete: function () {
+            setButtonLoading($btn, false);
         }
     });
-
 });

@@ -1,14 +1,3 @@
-<script type="text/javascript">
-    function LogMeOut() {
-        $.ajax({
-            type: "POST",
-            url: _relativeBaseDirectory + "/Account/LogOff",
-            success: function (data) {
-                window.location.href = _relativeBaseDirectory + "/Account/Login";
-            }
-        })
-    }
-</script>
 @if (User.Identity?.IsAuthenticated == true)
 {
     <text>

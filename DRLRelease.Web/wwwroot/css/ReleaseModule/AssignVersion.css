@@ -1,0 +1,79 @@
+/* Assign Version modal popup styles */
+.assign-dialog-header {
+    background: #333F45;
+    color: #fff;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.assign-dialog-title {
+    font-weight: bold;
+}
+
+.assign-dialog-header .dialog-close {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.assign-dialog-content {
+    padding: 20px;
+    background: #fff;
+}
+
+.assign-dialog-error {
+    color: #856404;
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.assign-dialog-field {
+    margin-bottom: 15px;
+}
+
+.assign-dialog-field-lg {
+    margin-bottom: 20px;
+}
+
+.assign-dialog-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.assign-dialog-value {
+    margin: 0;
+}
+
+.assign-dialog-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.assign-dialog-empty {
+    color: red;
+}
+
+.assign-dialog-footer {
+    text-align: right;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.assign-btn-cancel {
+    margin-right: 10px;
+    padding: 6px 15px;
+}
+
+.assign-btn-primary {
+    padding: 6px 15px;
+}

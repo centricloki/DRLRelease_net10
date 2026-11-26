@@ -3,41 +3,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    /* Fix overlapping sort icons in DataTables headers */
-    .dataTables_wrapper .dataTables_scrollHead th {
-        padding-right: 20px !important; /* Space for the sort arrow */
-        white-space: nowrap;            /* Keep header text on one line */
-        overflow: hidden;               /* Hide overflow if text is too long */
-        text-overflow: ellipsis;        /* Add ... if text is cut off */
-    }
-
-    /* Force left alignment for all content and headers */
-    .dataTables_wrapper table.dataTable th,
-    .dataTables_wrapper table.dataTable td {
-        text-align: left !important;
-        padding: 8px 10px !important;
-    }
-
-    /* Keep checkbox column centered */
-    .dataTables_wrapper table.dataTable th:first-child,
-    .dataTables_wrapper table.dataTable td:first-child {
-        text-align: center !important;
-        width: 40px !important;
-    }
-
-    /* Ensure the table fills the container */
-    .dataTables_wrapper {
-        width: 100%;
-    }
-
-    /* Fix header sort icon positioning */
-    .dataTables_wrapper .dataTables_scrollHead th.sorting,
-    .dataTables_wrapper .dataTables_scrollHead th.sorting_asc,
-    .dataTables_wrapper .dataTables_scrollHead th.sorting_desc {
-        background-position: right 8px center !important;
-    }
-</style>
+@section styles {
+    <link href="~/css/ReleaseModule/ReleaseIndex.css" rel="stylesheet" />
+    <link href="~/css/ReleaseModule/AssignVersion.css" rel="stylesheet" />
+}
 
 <div class="container">
     <div class="hero-unit">
@@ -45,7 +14,7 @@
             <h1>Home</h1>
         </div>
     </div>
-    <div class="header-image" style="min-height:600px">
+    <div class="header-image header-image-dashboard">
         <div class="tabs">
             <ul class="nav nav-tabs">
                 <li class="active"><a href="#tab1">Production Version Users</a></li>
@@ -58,7 +27,7 @@
                         <div class="title_left">
                             <h4>Production Version : @ViewBag.LatestProductionVersion</h4>
                         </div>
-                        <div class="title_right" style="padding-bottom:15px">
+                        <div class="title_right title-right-actions">
                             <a id="btnProductionAssignVersion" class="btn" href="javascript:void(0);">
                                 <img src="~/Images/assign.png" />Assign Version
                             </a>
@@ -78,10 +47,10 @@
                 </div>
                 <div id="tab2" class="tab-pane">
                     <div class="test-page">
-                        <div class="title_left" style="width: auto !important;">
+                        <div class="title_left title-left-auto">
                             <h4>Available Test Version : @ViewBag.LatestTestVersion</h4>
                         </div>
-                        <div class="title_right" style="padding-bottom:15px">
+                        <div class="title_right title-right-actions">
                             <a id="btnTestAssignVersion" class="btn" href="javascript:void(0);">
                                 <img src="~/Images/assign.png" />Assign Version
                             </a>
@@ -101,17 +70,17 @@
                 </div>
                 <div id="tab3" class="tab-pane">
                     <div class="test-page">
-                        <div class="title_left" style="width:auto !important">
+                        <div class="title_left title-left-auto">
                             <h4>Available Active Version : @ViewBag.ActiveVersions</h4>
                         </div>
-                        <div class="title_right" style="padding-bottom:15px">
+                        <div class="title_right title-right-actions">
                             <a id="btnAllUserAssignVersion" class="btn" href="javascript:void(0);">
                                 <img src="~/Images/assign.png" />Assign Version
                             </a>
                             <a id="btnAllUserRefresh" class="btn" href="javascript:void(0);">
                                 <img src="~/Images/refresh_icon.png" /> Refresh
                             </a>
-                            <a id="btnAllUserExport" class="btn" href="javascript:void(0);" >
+                            <a id="btnAllUserExport" class="btn" href="javascript:void(0);">
                                 <img src="~/Images/upload_new_app.png" /> Export CSV
                             </a>
                         </div>
@@ -130,3 +99,8 @@
     <div id="AssignVersion_dialog" class="web_dialog"></div>
     <div id="UploadProductionVersion_dialog" class="web_dialog"></div>
 </div>
+
+@section scripts {
+    <script src="~/js/ReleaseModule/ReleaseIndex.js"></script>
+    <script src="~/js/ReleaseModule/AssignVersion.js"></script>
+}
