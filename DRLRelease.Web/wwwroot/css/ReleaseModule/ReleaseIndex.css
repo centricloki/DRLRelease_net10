@@ -2,9 +2,9 @@
 /* Fix overlapping sort icons in DataTables headers */
 .dataTables_wrapper .dataTables_scrollHead th {
     padding-right: 20px !important; /* Space for the sort arrow */
-    white-space: nowrap;            /* Keep header text on one line */
-    overflow: hidden;               /* Hide overflow if text is too long */
-    text-overflow: ellipsis;        /* Add ... if text is cut off */
+    white-space: nowrap; /* Keep header text on one line */
+    overflow: hidden; /* Hide overflow if text is too long */
+    text-overflow: ellipsis; /* Add ... if text is cut off */
 }
 
 /* Force left alignment for all content and headers */
@@ -14,23 +14,31 @@
     padding: 8px 10px !important;
 }
 
-/* Keep checkbox column centered */
-.dataTables_wrapper table.dataTable th:first-child,
-.dataTables_wrapper table.dataTable td:first-child {
-    text-align: center !important;
-    width: 40px !important;
-}
+    /* Keep checkbox column centered */
+    .dataTables_wrapper table.dataTable th:first-child,
+    .dataTables_wrapper table.dataTable td:first-child {
+        text-align: center !important;
+        width: 40px !important;
+    }
 
 /* Ensure the table fills the container */
 .dataTables_wrapper {
     width: 100%;
 }
 
-/* Fix header sort icon positioning */
-.dataTables_wrapper .dataTables_scrollHead th.sorting,
-.dataTables_wrapper .dataTables_scrollHead th.sorting_asc,
-.dataTables_wrapper .dataTables_scrollHead th.sorting_desc {
-    background-position: right 8px center !important;
+    /* Fix header sort icon positioning */
+    .dataTables_wrapper .dataTables_scrollHead th.sorting,
+    .dataTables_wrapper .dataTables_scrollHead th.sorting_asc,
+    .dataTables_wrapper .dataTables_scrollHead th.sorting_desc {
+        background-position: right 8px center !important;
+    }
+
+/* --- ADDED: Restore lost dark header background --- */
+#tableProductionList thead th,
+#tableTestList thead th,
+#tableAllList thead th {
+    background-color: #333F45 !important;
+    color: #ffffff !important;
 }
 
 .header-image-dashboard {

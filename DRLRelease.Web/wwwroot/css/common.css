@@ -2,3 +2,40 @@
 .footer-spacing {
     margin-top: 20px;
 }
+/* ============================================================
+   Restore Legacy Dark Navbar Background
+   ============================================================ */
+
+/* Dark slate background for the top bar */
+.navbar-inner {
+    background-color: #333F45 !important;
+    background-image: none !important; /* Remove default Bootstrap gradient */
+    border: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+/* Menu links (Home, Upload New App, etc.) - Light Blue */
+.navbar .nav > li > a {
+    color: #5b8ba4 !important;
+    text-shadow: none !important;
+    font-weight: normal;
+}
+
+    /* Hover and Active states - White */
+    .navbar .nav > li > a:hover,
+    .navbar .nav > li.active > a {
+        color: #ffffff !important;
+        background-color: transparent !important;
+    }
+
+/* Log off link - White */
+#login a,
+.navbar .nav.pull-right > li > a {
+    color: #ffffff !important;
+}
+
+/* Ensure the logo area doesn't have a weird background */
+.navbar .brand {
+    background-color: transparent !important;
+}
