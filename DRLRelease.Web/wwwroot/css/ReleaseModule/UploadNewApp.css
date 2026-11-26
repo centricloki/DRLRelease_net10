@@ -2,3 +2,44 @@
 .header-image-upload {
     min-height: 500px;
 }
+
+.header-image-upload .formpage {
+    display: flex;
+    align-items: flex-start;
+    float: none;
+    clear: both;
+}
+
+.header-image-upload .formpage .page-left {
+    float: none;
+    width: 31%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+.header-image-upload .formpage .page-left label {
+    padding-top: 0;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.header-image-upload .formpage .page-right {
+    float: none;
+    width: 68%;
+    margin: 0;
+}
+
+.header-image-upload .formpage .page-right input[type="file"] {
+    height: auto;
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+}
+
+.header-image-upload .formpage .page-right .field-validation-error {
+    display: block;
+    margin-top: 4px;
+}
