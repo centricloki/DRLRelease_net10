@@ -1,129 +1,49 @@
 <link href="~/css/release.css" rel="stylesheet" />
 <style>
-    /* 1. Left-align the heading */
+    /* Left-align heading and radios */
     .page-note {
-        display: block;
-        float: none !important;
         text-align: left !important;
-        margin-left: 0 !important;
     }
-
-    /* 2. Remove horizontal padding/margins so everything aligns flush left with .page-note */
-    .page-contain {
-        padding: 10px 0 !important;
-    }
-
-    /* 3. Left-align radio buttons */
     .page-contain > div[style*="margin"] {
         margin-left: 0 !important;
     }
 
-    /* 4. WHAT'S NEW section - use flexbox to align left WITHOUT hiding anything */
-    #trwhatsnew {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        text-align: left !important;
-        float: none !important;
-        width: 100% !important;
-        margin: 10px 0 0 0 !important;
-        padding: 0 !important;
-    }
-
+    /* WHAT'S NEW section - ONLY style children, never the container itself */
     #trwhatsnew > .page-left {
-        display: none !important; /* Only hide the OUTER empty spacer */
+        display: none !important;
     }
-
     #trwhatsnew > .page-right {
-        float: none !important;
         width: 100% !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
         text-align: left !important;
     }
 
-    .production-verion-inner {
-        float: none !important;
-        width: 100% !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
-        text-align: left !important;
-    }
-
-    #ullist {
-        float: none !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
-        text-align: left !important;
-    }
-
-    /* 5. Inner textbox row - use flexbox, keep textbox visible */
+    /* Inner textbox row - use flexbox for alignment */
     #trwhatsnew .formpage {
         display: flex !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        float: none !important;
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        padding: 0 !important;
+        align-items: center;
+        gap: 10px;
     }
-
     #trwhatsnew .formpage .page-left {
-        display: block !important; /* KEEP TEXTBOX VISIBLE */
-        width: 70% !important;
-        float: none !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
+        flex: 1;
     }
-
     #trwhatsnew .formpage .page-right {
-        display: block !important;
-        width: 25% !important;
-        float: none !important;
-        text-align: left !important;
+        flex: 0 0 auto;
     }
 
-    /* 6. Textbox and Add button */
-    #txtWhatsNew {
-        width: 90% !important;
-        margin-left: 0 !important;
-        display: inline-block;
-    }
-
-    #btnAddNew {
-        display: inline-block;
-        margin-left: 10px;
-        float: none !important;
-    }
-
-    /* 7. Bottom buttons row - center Cancel and Update buttons */
+    /* Bottom buttons row */
     .page-contain > .formpage:last-child {
         display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        float: none !important;
-        width: 100% !important;
-        margin: 15px 0 0 0 !important;
-        padding: 0 !important;
+        justify-content: flex-start;
+        gap: 10px;
     }
-
     .page-contain > .formpage:last-child > .page-left {
-        display: none !important; /* Hide only the bottom row's empty spacer */
+        display: none !important;
     }
-
     .page-contain > .formpage:last-child > .page-right {
-        float: none !important;
         width: 100% !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
-        text-align: center !important;
     }
-
-    .page-contain > .formpage:last-child > .page-right input[type="button"] {
+    .page-contain > .formpage:last-child input[type="button"] {
         float: none !important;
-        margin: 0 4px !important;
-        display: inline-block;
     }
 </style>
 <div class="container">
@@ -160,14 +80,6 @@
                             <label id="lblVesion">0</label>
                         </div>
                         <ul id="ullist" class="ullist"></ul>
-                        <div class="formpage" style="margin-top:10px;">
-                            <div class="page-left" style="width:84%;">
-                                <input id="txtWhatsNew" class="pversion-text" type="text" />
-                            </div>
-                            <div class="page-right" style="width:15% !important">
-                                <a id="btnAddNew" class="button popup-margin-left" style="float:right;margin-right:6px;margin-top:2px;" href="javascript:void(0);">Add</a>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -185,16 +97,14 @@
             <span class="page-note textValidation">There is no anymore application available to move into Production</span>
             <div class="page-contain">
                 <div class="formpage">
-                    <div class="page-left"></div>
+                    <div class="page-left">
+                        <label></label>
+                    </div>
                     <div class="page-right">
-                        <input id="btnCancel" class="btn" type="button" value="Back" data-url="@Url.Action("Index", "Release")" />
+                        <span>No version available</span>
                     </div>
                 </div>
             </div>
         }
     </div>
 </div>
-
-@section Scripts {
-    <script src="~/js/ReleaseModule/UpdateVersion.js"></script>
-}
