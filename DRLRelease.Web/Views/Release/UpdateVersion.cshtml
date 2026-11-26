@@ -19,7 +19,7 @@
             <span class="page-note">Select Application Version to move into Production</span>
 
             <div class="page-contain">
-                <!-- Radio buttons with proper alignment -->
+                <!-- Radio buttons -->
                 <div class="update-version-radios">
                     @foreach (var item in Model.TestVersionList)
                     {
@@ -31,39 +31,35 @@
                     }
                 </div>
 
+                <!-- What's New Section (Hidden by default via CSS) -->
                 <div class="formpage" id="trwhatsnew">
-                    <div class="page-left">
-                        <label></label>
+                    <div class="production-verion-inner">
+                        <span>WHAT'S NEW IN VERSION</span>
+                        <label id="lblVesion">0</label>
                     </div>
-                    <div class="page-right">
-                        <div class="production-verion-inner">
-                            <span>WHAT'S NEW IN VERSION</span>
-                            <label id="lblVesion">0</label>
-                        </div>
-                        <ul id="ullist" class="ullist"></ul>
+
+                    <ul id="ullist" class="ullist"></ul>
+
+                    <!-- Text box and Add button -->
+                    <div class="whats-new-input-row">
+                        <input id="txtWhatsNew" type="text" class="form-control" placeholder="Type note and press Enter..." />
+                        <a id="btnAddNew" class="btn-add" href="javascript:void(0);">Add</a>
                     </div>
                 </div>
 
-                <div class="formpage">
-                    <div class="page-left"></div>
-                    <div class="page-right">
-                        <input id="btnCancel" class="btn" type="button" value="Cancel" data-url="@Url.Action("Index", "Release")" />
-                        <input id="btnUpdate" class="button" type="button" value="Update" />
-                    </div>
+                <!-- Action Buttons -->
+                <div class="formpage action-buttons-row">
+                    <input id="btnCancel" class="btn" type="button" value="Cancel" data-url="@Url.Action("Index", "Release")" />
+                    <input id="btnUpdate" class="btn" type="button" value="Update" />
                 </div>
             </div>
         }
         else
         {
-            <span class="page-note textValidation">There is no anymore application available to move into Production</span>
+            <span class="page-note textValidation">There is no application available to move into Production</span>
             <div class="page-contain">
-                <div class="formpage">
-                    <div class="page-left">
-                        <label></label>
-                    </div>
-                    <div class="page-right">
-                        <span>No version available</span>
-                    </div>
+                <div class="formpage action-buttons-row">
+                    <input id="btnCancel" class="btn" type="button" value="Back" data-url="@Url.Action("Index", "Release")" />
                 </div>
             </div>
         }

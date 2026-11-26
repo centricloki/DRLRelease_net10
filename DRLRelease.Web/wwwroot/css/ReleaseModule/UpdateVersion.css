@@ -1,67 +1,193 @@
 /* ============================================================
-   Update Version Page Styles
+   Update Version Page - Alignment & Theme Button Styles
    ============================================================ */
 
-/* --- Fix 1: Radio Button Alignment --- */
+.header-image-subpage {
+    min-height: 500px;
+}
 
-/* Ensure the radio list container starts on a new line below the header */
-.page-contain {
+.header-image-subpage .page-note {
+    float: none;
     display: block;
+    margin-left: 10px;
+    text-align: left !important;
+}
+
+.header-image-subpage .page-contain {
+    padding: 10px;
+}
+
+/* Override Site.css .formpage float/96% width/1% margin so sections align flush */
+.header-image-subpage .page-contain > .formpage {
+    float: none;
+    width: 100%;
+    margin: 20px 0 0 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* --- Radio Button Alignment --- */
+.update-version-radios {
+    margin: 12px 0 20px 0;
+    width: 100%;
     clear: both;
 }
 
-/* Force each radio button to its own line and prevent floating */
 .radio-inline-item {
-    display: block !important;
+    display: block;
     margin-bottom: 10px;
     clear: both;
 }
 
-    /* Ensure the label next to the radio is aligned properly */
+    .radio-inline-item input[type="radio"] {
+        vertical-align: middle;
+        margin: 0 8px 0 0;
+        display: inline-block;
+    }
+
     .radio-inline-item label {
         display: inline-block;
-        margin-left: 5px;
+        vertical-align: middle;
+        margin: 0;
         cursor: pointer;
+        font-weight: normal;
+        color: #333;
     }
 
-/* --- Fix 2: Show Text Box and Add Button --- */
-
-/* When #trwhatsnew is shown, force it to be a block and clear floats */
+/* --- What's New Section (hidden until a version radio is clicked) --- */
 #trwhatsnew {
-    display: block !important;
+    display: none;
     clear: both;
-    margin-top: 20px;
-    overflow: hidden; /* Contains floated children */
 }
 
-    /* Reset the legacy column layout inside #trwhatsnew to stack vertically */
-    #trwhatsnew .page-left,
-    #trwhatsnew .page-right,
-    #trwhatsnew .formpage {
-        display: block !important;
-        width: 100% !important;
-        float: none !important;
-        clear: both;
+.header-image-subpage .production-verion-inner {
+    float: none;
+    width: 100%;
+    height: auto;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 14px;
+    text-align: left;
+}
+
+    .header-image-subpage .production-verion-inner span {
+        float: none;
+        margin-right: 8px;
+        margin-top: 0;
     }
 
-    /* Ensure the text input is visible and sized correctly */
-    #trwhatsnew input[type="text"] {
-        display: inline-block !important;
-        width: 80%;
-        margin: 10px 0;
-        padding: 5px;
-        border: 1px solid #ccc;
-    }
-
-    /* Ensure the Add button is visible */
-    #trwhatsnew #btnAddNew {
-        display: inline-block !important;
-        margin: 10px 0 10px 10px;
-        cursor: pointer;
-    }
-
-    /* Style the "What's New" label */
-    #trwhatsnew .production-verion-inner {
-        margin-top: 10px;
+    .header-image-subpage .production-verion-inner #lblVesion {
+        display: inline;
+        color: #5a8fac;
         font-weight: bold;
     }
+
+.ullist {
+    list-style: none;
+    margin: 0 0 12px 0;
+    padding: 0;
+    width: 100%;
+}
+
+    .ullist li {
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+        .ullist li .remove-note {
+            color: #d9534f;
+            text-decoration: none;
+            margin-left: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+/* --- Input Row (Text box + Add button) --- */
+.header-image-subpage .whats-new-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 12px 0 0 0;
+}
+
+    .whats-new-input-row #txtWhatsNew {
+        flex: 1;
+        width: auto;
+        height: 34px;
+        padding: 6px 10px;
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 14px;
+        line-height: 20px;
+        box-sizing: border-box;
+    }
+
+    .whats-new-input-row #btnAddNew {
+        flex: 0 0 auto;
+        min-width: 84px;
+        height: 34px;
+        line-height: 32px;
+        padding: 0 16px;
+        margin: 0;
+        text-align: center;
+        background-color: #5b8ba4;
+        background-image: none;
+        color: #ffffff;
+        border: 1px solid #4a7a94;
+        border-radius: 3px;
+        font-size: 13px;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+        .whats-new-input-row #btnAddNew:hover {
+            background-color: #4a7a94;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+/* --- Action Buttons (Cancel / Update) --- */
+.header-image-subpage .page-contain > .action-buttons-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    width: 100%;
+}
+
+    .action-buttons-row .btn,
+    .action-buttons-row input[type="button"] {
+        height: 34px;
+        line-height: 32px;
+        padding: 0 18px !important;
+        margin: 0;
+        background-color: #5b8ba4 !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        color: #ffffff !important;
+        border: 1px solid #4a7a94 !important;
+        border-radius: 3px !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+        .action-buttons-row .btn:hover,
+        .action-buttons-row input[type="button"]:hover {
+            background-color: #4a7a94 !important;
+            background-image: none !important;
+            color: #ffffff !important;
+        }
