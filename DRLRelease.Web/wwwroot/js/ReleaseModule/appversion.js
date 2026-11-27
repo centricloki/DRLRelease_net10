@@ -23,7 +23,7 @@ function BindList() {
                 columns: [
                     { title: "ID", data: 'AppVersionID' },
                     { title: "VERSION", data: 'Version' },
-                    { title: "DOWNLOADURL", data: 'DownloadURL' },
+                    { title: "DOWNLOADURL", data: 'DownloadURL', orderable: false },
                     {
                         title: "IS PRODUCTION",
                         data: null,
