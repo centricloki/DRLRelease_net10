@@ -16,11 +16,11 @@
     text-overflow: ellipsis;
 }
 
-.dataTables_wrapper table.dataTable thead th.sorting,
-.dataTables_wrapper table.dataTable thead th.sorting_asc,
-.dataTables_wrapper table.dataTable thead th.sorting_desc {
-    background-position: right 8px center !important;
-}
+    .dataTables_wrapper table.dataTable thead th.sorting,
+    .dataTables_wrapper table.dataTable thead th.sorting_asc,
+    .dataTables_wrapper table.dataTable thead th.sorting_desc {
+        background-position: right 8px center !important;
+    }
 
 /* Truncate long DOWNLOADURL text so rows stay one line tall */
 .dataTables_wrapper table.dataTable td:nth-child(3) {
@@ -38,3 +38,61 @@
 #appversionlist .header-image {
     min-height: 600px;
 }
+
+/* ============================================================
+   Uniform grid-header typography
+   Nothing above sets font-size, so each column was inheriting a
+   different size from the legacy/bootstrap/DataTables rules that
+   key off the sorting state class. These selectors cover EVERY
+   state (including sorting_disabled, produced by orderable:false)
+   at equal-or-higher specificity, so one size always wins.
+   ============================================================ */
+#tableVersionList thead th,
+#tableVersionList thead th.sorting,
+#tableVersionList thead th.sorting_asc,
+#tableVersionList thead th.sorting_desc,
+#tableVersionList thead th.sorting_disabled,
+#tableVersionList thead th.sorting_asc_disabled,
+#tableVersionList thead th.sorting_desc_disabled,
+.dataTables_wrapper #tableVersionList thead th,
+.dataTables_wrapper table.dataTable#tableVersionList thead th,
+.dataTables_wrapper table.dataTable#tableVersionList thead th.sorting,
+.dataTables_wrapper table.dataTable#tableVersionList thead th.sorting_asc,
+.dataTables_wrapper table.dataTable#tableVersionList thead th.sorting_desc,
+.dataTables_wrapper table.dataTable#tableVersionList thead th.sorting_disabled {
+    font-family: inherit !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+    line-height: 1.25 !important;
+    letter-spacing: .3px !important;
+    text-transform: none !important;
+    font-variant: normal !important;
+    font-stretch: normal !important;
+}
+
+    /* The sort glyph must not carry its own text metrics */
+    #tableVersionList thead th .dataTables_sort_icon,
+    #tableVersionList thead th .css_right,
+    #tableVersionList thead th span[class*="ui-icon"] {
+        font-size: inherit !important;
+        line-height: 1 !important;
+        vertical-align: middle;
+    }
+
+/* Body cells stay on one consistent scale too */
+#tableVersionList tbody td,
+.dataTables_wrapper table.dataTable#tableVersionList tbody td {
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    letter-spacing: normal !important;
+}
+
+    /* ACTION links must not inherit a bolder/larger scale than the cell */
+    #tableVersionList tbody td a {
+        font-size: inherit !important;
+        font-weight: 700 !important;
+        line-height: inherit !important;
+    }

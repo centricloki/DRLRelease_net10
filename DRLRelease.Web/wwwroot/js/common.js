@@ -6,6 +6,45 @@ function getAppUrl(path) {
     return (_relativeBaseDirectory || '') + (path.charAt(0) === '/' ? path : '/' + path);
 }
 
+/* ------------------------------------------------------------
+   Numeric version ordering for DataTables (shared by every grid).
+   Dotted versions are strings, so the default comparator orders
+   "1.9.101" before "1.9.44" ('1' < '4'). This plug-in compares
+   each numeric component instead.
+
+   The sort key is a fixed-width zero-padded STRING compared as a
+   string. A numeric key is deliberately avoided: 4 components x
+   6 digits exceeds Number.MAX_SAFE_INTEGER (2^53) and would
+   silently mis-order large build numbers.
+
+   Usage:  { title: "VERSION", data: 'Version', type: 'drl-version' }
+   ------------------------------------------------------------ */
+(function ($) {
+    if (!$ || !$.fn || !$.fn.dataTable || !$.fn.dataTable.ext) { return; }
+
+    var order = $.fn.dataTable.ext.type.order;
+    if (order['drl-version-pre']) { return; } // register exactly once
+
+    function versionKey(value) {
+        if (value === null || value === undefined) { return '000000000000000000000000'; }
+        var parts = String(value).replace(/[^0-9.]/g, '').split('.');
+        var key = '';
+        for (var i = 0; i < 4; i++) {
+            var n = parseInt(parts[i], 10);
+            if (isNaN(n) || n < 0) { n = 0; }
+            if (n > 999999) { n = 999999; }
+            key += ('000000' + n).slice(-6);
+        }
+        return key;
+    }
+
+    function cmp(a, b) { return a < b ? -1 : (a > b ? 1 : 0); }
+
+    order['drl-version-pre'] = versionKey;
+    order['drl-version-asc'] = cmp;
+    order['drl-version-desc'] = function (a, b) { return cmp(b, a); };
+})(window.jQuery);
+
 function setButtonLoading($btn, isLoading, loadingText) {
     if (!$btn || !$btn.length) return;
     var isInput = $btn.is('input');

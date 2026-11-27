@@ -1,4 +1,45 @@
 // ============================================================
+// DRL Release — Home dashboard (Production / Test / All Users)
+// Depends on common.js: getAppUrl, normalizeRow, showMessage,
+// ShowDialog, JsonToDateTimeFormat, 'drl-version' ordering plug-in.
+// NOTE: #btnAssign and dialog cancel/close are owned by
+// AssignVersion.js — do NOT bind them here.
+// ============================================================
+
+// ------------------------------------------------------------
+// Anchor-safe busy state. common.js setButtonLoading uses .text(),
+// which would destroy the <img> inside these <a class="btn"> elements,
+// so the label is swapped on a cloned node instead.
+// ------------------------------------------------------------
+function setAnchorBusy($btn, busy, busyText) {
+    if (!$btn || !$btn.length) { return; }
+
+    if (busy) {
+        if ($btn.data('rl-busy') === true) { return; }
+        $btn.data('rl-busy', true)
+            .data('rl-html', $btn.html())
+            .css({ 'pointer-events': 'none', 'opacity': '0.6' })
+            .attr('aria-disabled', 'true');
+
+        var $clone = $btn.clone();
+        $clone.find('img').remove();
+        var label = $.trim($clone.text());
+        $btn.contents().filter(function () {
+            return this.nodeType === 3 && $.trim(this.nodeValue).length > 0;
+        }).last().each(function () {
+            this.nodeValue = ' ' + (busyText || 'Working...');
+        });
+        $btn.data('rl-label', label);
+    } else {
+        var html = $btn.data('rl-html');
+        if (html !== undefined) { $btn.html(html); }
+        $btn.removeData('rl-busy').removeData('rl-html').removeData('rl-label')
+            .css({ 'pointer-events': '', 'opacity': '' })
+            .removeAttr('aria-disabled');
+    }
+}
+
+// ============================================================
 // GRID BINDING
 // ============================================================
 function RebindProductionVersionList() { BindUserTable('#tableProductionList', getAppUrl('/Release/ProductionList'), "Production"); }
@@ -30,11 +71,13 @@ function BindUserTable(tableId, apiUrl, cssType) {
                 ],
                 columns: [
                     { targets: 0, sortable: false, defaultContent: '<input type="checkbox" class="row-checkbox"/>' },
-                    { title: "USER ID", data: 'UserID' },
+                    { title: "USER ID", data: 'UserID', type: 'num' },
                     { title: "USER NAME", data: null, render: function (d, t, row) { return (row.FirstName || '') + ' ' + (row.LastName || ''); } },
-                    { title: "CURRENT VERSION", data: 'CurrentVersionName' },
+                    // numeric-component ordering (1.9.44 < 1.9.101)
+                    { title: "CURRENT VERSION", data: 'CurrentVersionName', type: 'drl-version' },
                     { title: "UPDATED", data: 'IsUpdated', render: function (d) { return d ? 'Yes' : 'No'; } },
-                    { title: "ASSIGN VERSION", data: 'AssignedVersionName' },
+                    // numeric-component ordering (1.9.44 < 1.9.101)
+                    { title: "ASSIGN VERSION", data: 'AssignedVersionName', type: 'drl-version' },
                     { title: "IOS VERSION", data: 'IOSVersion' },
                     { title: "", data: 'CurrentVersion', visible: false },
                     { title: "IPAD LOGIN", data: 'LastLoginDateTime', render: function (d) { return JsonToDateTimeFormat(d); } }
@@ -46,174 +89,256 @@ function BindUserTable(tableId, apiUrl, cssType) {
     });
 }
 
+// ============================================================
+// GRID CSS HELPERS
+// ============================================================
 function ApplyCssOnList(versiontype) {
-    var id = versiontype === "Test" ? "tableTestList" : (versiontype === "All" ? "tableAllList" : "tableProductionList");
-    if ($("#" + id + " tbody tr").length > 0) {
-        $("#" + id + " thead tr").each(function () {
-            $(this).children('th').eq(0).removeClass("sorting_asc");
-            $(this).children('th').eq(2).addClass("td-username");
-        });
-    }
+    var id = versiontype === "Test" ? "tableTestList"
+        : (versiontype === "All" ? "tableAllList" : "tableProductionList");
+
+    if ($("#" + id + " tbody tr").length === 0) { return; }
+
+    $("#" + id + " thead tr").each(function () {
+        // checkbox column is not a real sort target
+        $(this).children('th').eq(0)
+            .removeClass("sorting sorting_asc sorting_desc")
+            .addClass("sorting_disabled");
+        // user name reads left-aligned
+        $(this).children('th').eq(2).addClass("td-username");
+    });
+
+    $("#" + id + " tbody tr").each(function () {
+        $(this).children('td').eq(2).addClass("td-username");
+    });
+}
+
+function tableIdForType(versionType) {
+    return versionType === "Test" ? "#tableTestList"
+        : (versionType === "All" ? "#tableAllList" : "#tableProductionList");
 }
 
 // ============================================================
-// ASSIGN POPUP OPENER
+// ASSIGN VERSION — open the popup for the checked rows
+// (submit + close are handled by AssignVersion.js)
 // ============================================================
-function ShowAssignVersionPopup(versiontype, callback) {
-    var UserIDS = [], UserNameS = [], UserCurrentVersionList = [], CurrentVersionIdList = [];
-    var tableId = versiontype === "Test" ? "#tableTestList" : (versiontype === "All" ? "#tableAllList" : "#tableProductionList");
+function ShowAssignVersionPopup(versionType, done) {
+    var tableId = tableIdForType(versionType);
+
+    if (!$.fn.DataTable.isDataTable(tableId)) {
+        showMessage("The list is still loading. Please try again.", true);
+        if (done) { done(); }
+        return;
+    }
+
     var table = $(tableId).DataTable();
+    var userIds = [], userNames = [], currentVersions = [], currentVersionIds = [];
 
     $(tableId + ' tbody tr').each(function () {
-        if ($(this).find('input[type="checkbox"]').is(':checked')) {
-            var row = normalizeRow(table.row(this).data());
-            UserIDS.push(row.UserID);
-            UserNameS.push((row.FirstName || '') + ' ' + (row.LastName || ''));
-            UserCurrentVersionList.push(row.CurrentVersionName || "0");
-            CurrentVersionIdList.push(row.CurrentVersion);
-            $(this).find('input[type="checkbox"]').prop('checked', false);
-        }
+        var $row = $(this);
+        if (!$row.find('input.row-checkbox').is(':checked')) { return; }
+
+        var row = normalizeRow(table.row($row).data());
+        if (!row) { return; }
+
+        userIds.push(row.UserID);
+        userNames.push($.trim((row.FirstName || '') + ' ' + (row.LastName || '')));
+        currentVersions.push(row.CurrentVersionName || "0");
+        currentVersionIds.push(row.CurrentVersion);
     });
+
+    if (userIds.length === 0) {
+        showMessage("Please select at least one user to assign a version.", true);
+        if (done) { done(); }
+        return;
+    }
 
     $.ajax({
         type: "POST",
         url: getAppUrl("/Release/PopupAssignVersion"),
-        traditional: true,
+        traditional: true, // required for List<int> binding in ASP.NET Core
         data: {
-            versionType: versiontype,
-            userIdList: UserIDS,
-            userNameList: UserNameS,
-            userCurrentVersions: UserCurrentVersionList,
-            currentVersionIdList: CurrentVersionIdList
+            versionType: versionType,
+            userIdList: userIds,
+            userNameList: userNames,
+            userCurrentVersions: currentVersions,
+            currentVersionIdList: currentVersionIds
         },
-        success: function (data) {
-            $('#AssignVersion_dialog').html(data);
+        success: function (html) {
+            $('#AssignVersion_dialog').html(html);
             ShowDialog(false, "AssignVersion_dialog");
-            if (callback) callback();
+            $(tableId + ' input.row-checkbox').prop('checked', false);
         },
         error: function () {
             showMessage("Error loading assign version dialog.", true);
-            if (callback) callback(); // reset button even on error
+        },
+        complete: function () {
+            if (done) { done(); }
         }
     });
 }
 
 // ============================================================
-// DOCUMENT READY (bindings only)
-// ============================================================
-$(document).ready(function () {
-    $('.nav-tabs a').on('click', function (e) {
-        var currentAttrValue = jQuery(this).attr('href');
-        $('.tabs ' + currentAttrValue).siblings().slideUp(500);
-        $('.tabs ' + currentAttrValue).delay(500).slideDown(500);
-        $(this).parent('li').addClass('active').siblings().removeClass('active');
-        e.preventDefault();
-    });
-
-    RebindProductionVersionList();
-    RebindTestVersionList();
-    RebindAllVersionList();
-
-    // Refresh buttons with loader
-    $("#btnProductionRefresh").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Refreshing...');
-        RebindProductionVersionList();
-        setButtonLoading($btn, false);
-    });
-    $("#btnTestRefresh").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Refreshing...');
-        RebindTestVersionList();
-        setButtonLoading($btn, false);
-    });
-    $("#btnAllUserRefresh").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Refreshing...');
-        RebindAllVersionList();
-        setButtonLoading($btn, false);
-    });
-
-    // Export buttons
-    $("#btnProductionExport").click(function () {
-        exportTableToCSV('#tableProductionList', 'ProductionVersionUsers_' + new Date().toISOString().slice(0, 10) + '.csv');
-    });
-    $("#btnTestExport").click(function () {
-        exportTableToCSV('#tableTestList', 'TestVersionUsers_' + new Date().toISOString().slice(0, 10) + '.csv');
-    });
-    $("#btnAllUserExport").click(function () {
-        exportTableToCSV('#tableAllList', 'AllUsers_' + new Date().toISOString().slice(0, 10) + '.csv');
-    });
-
-    // Assign popup openers with loader
-    $("#btnProductionAssignVersion").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Loading...');
-        ShowAssignVersionPopup("Production", function () { setButtonLoading($btn, false); });
-    });
-    $("#btnTestAssignVersion").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Loading...');
-        ShowAssignVersionPopup("Test", function () { setButtonLoading($btn, false); });
-    });
-    $("#btnAllUserAssignVersion").click(function () {
-        var $btn = $(this);
-        setButtonLoading($btn, true, 'Loading...');
-        ShowAssignVersionPopup("All", function () { setButtonLoading($btn, false); });
-    });
-});
-
-// ============================================================
-// EXPORT TABLE TO CSV
+// EXPORT CSV — reads row OBJECTS by field name.
+// The earlier version iterated rowData by numeric index, which
+// produced a header-only file.
 // ============================================================
 function exportTableToCSV(tableId, filename) {
-    var table = $(tableId).DataTable();
-    var rows = table.rows({ search: 'applied' }).data();
+    if (!$.fn.DataTable.isDataTable(tableId)) {
+        showMessage("The list is still loading. Please try again.", true);
+        return;
+    }
 
-    if (rows.length === 0) {
+    var table = $(tableId).DataTable();
+    var rows = table.rows({ search: 'applied', order: 'applied' }).data();
+
+    if (!rows || rows.length === 0) {
         showMessage("No data to export.", true);
         return;
     }
 
-    var csv = [];
+    function cell(value) {
+        if (value === null || value === undefined) { return '""'; }
+        return '"' + String(value).replace(/"/g, '""') + '"';
+    }
 
-    // Headers (skip checkbox column)
-    csv.push('"USER ID","USER NAME","CURRENT VERSION","UPDATED","ASSIGN VERSION","IOS VERSION","IPAD LOGIN"');
+    var lines = [];
+    lines.push([
+        '"USER ID"', '"USER NAME"', '"CURRENT VERSION"', '"UPDATED"',
+        '"ASSIGN VERSION"', '"IOS VERSION"', '"IPAD LOGIN"'
+    ].join(','));
 
-    // Extract data from each row
-    rows.each(function (rowData) {
-        var userId = rowData.UserID || '';
-        var userName = (rowData.FirstName || '') + ' ' + (rowData.LastName || '');
-        var currentVersion = rowData.CurrentVersionName || '';
-        var updated = rowData.IsUpdated ? 'Yes' : 'No';
-        var assignVersion = rowData.AssignedVersionName || '';
-        var iosVersion = rowData.IOSVersion || '';
-
-        var lastLogin = '';
-        if (rowData.LastLoginDateTime) {
-            var d = new Date(rowData.LastLoginDateTime);
-            if (!isNaN(d.getTime())) {
-                var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                var h = d.getHours(), ap = h >= 12 ? 'PM' : 'AM';
-                h = h % 12 || 12;
-                var mi = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
-                lastLogin = d.getDate() + "-" + monthNames[d.getMonth()] + "-" + d.getFullYear() + " " + h + ":" + mi + " " + ap;
-            }
-        }
-
-        csv.push('"' + userId + '","' + userName + '","' + currentVersion + '","' + updated + '","' + assignVersion + '","' + iosVersion + '","' + lastLogin + '"');
+    rows.each(function (raw) {
+        var row = normalizeRow(raw);
+        var fullName = $.trim((row.FirstName || '') + ' ' + (row.LastName || ''));
+        lines.push([
+            cell(row.UserID),
+            cell(fullName),
+            cell(row.CurrentVersionName),
+            cell(row.IsUpdated ? 'Yes' : 'No'),
+            cell(row.AssignedVersionName),
+            cell(row.IOSVersion),
+            cell(JsonToDateTimeFormat(row.LastLoginDateTime))
+        ].join(','));
     });
 
-    // Create and download CSV
-    var csvContent = csv.join('\n');
-    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    var link = document.createElement('a');
-    var url = URL.createObjectURL(blob);
+    // BOM + CRLF so Excel opens it with correct encoding and rows
+    var payload = '\uFEFF' + lines.join('\r\n');
+    var blob = new Blob([payload], { type: 'text/csv;charset=utf-8;' });
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+        return;
+    }
+
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 }
+
+function exportFileName(prefix) {
+    var d = new Date();
+    var mm = ('0' + (d.getMonth() + 1)).slice(-2);
+    var dd = ('0' + d.getDate()).slice(-2);
+    return prefix + '_' + d.getFullYear() + '-' + mm + '-' + dd + '.csv';
+}
+
+// ============================================================
+// DOCUMENT READY — bindings only.
+// '.rlIndex' namespace + .off() makes re-binding idempotent.
+// ============================================================
+$(document).ready(function () {
+
+    // ---- legacy tab switching ----
+    $('.nav-tabs a').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var target = $(this).attr('href');
+        var $pane = $('.tabs ' + target);
+        if (!$pane.length) { return; }
+
+        $pane.siblings('.tab-pane').stop(true, true).slideUp(300);
+        $pane.stop(true, true).delay(300).slideDown(300, function () {
+            // panes are hidden at init; re-measure once visible
+            $pane.find('table.display').each(function () {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().columns.adjust();
+                }
+            });
+        });
+
+        $(this).parent('li').addClass('active').siblings().removeClass('active');
+    });
+
+    // ---- refresh ----
+    $('#btnProductionRefresh').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Refreshing...');
+        RebindProductionVersionList();
+        setAnchorBusy($b, false);
+    });
+
+    $('#btnTestRefresh').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Refreshing...');
+        RebindTestVersionList();
+        setAnchorBusy($b, false);
+    });
+
+    $('#btnAllUserRefresh').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Refreshing...');
+        RebindAllVersionList();
+        setAnchorBusy($b, false);
+    });
+
+    // ---- assign version (opens popup) ----
+    $('#btnProductionAssignVersion').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Loading...');
+        ShowAssignVersionPopup("Production", function () { setAnchorBusy($b, false); });
+    });
+
+    $('#btnTestAssignVersion').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Loading...');
+        ShowAssignVersionPopup("Test", function () { setAnchorBusy($b, false); });
+    });
+
+    $('#btnAllUserAssignVersion').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        var $b = $(this);
+        setAnchorBusy($b, true, 'Loading...');
+        ShowAssignVersionPopup("All", function () { setAnchorBusy($b, false); });
+    });
+
+    // ---- export csv ----
+    $('#btnProductionExport').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        exportTableToCSV('#tableProductionList', exportFileName('ProductionVersionUsers'));
+    });
+
+    $('#btnTestExport').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        exportTableToCSV('#tableTestList', exportFileName('TestVersionUsers'));
+    });
+
+    $('#btnAllUserExport').off('click.rlIndex').on('click.rlIndex', function (e) {
+        e.preventDefault();
+        exportTableToCSV('#tableAllList', exportFileName('AllUsers'));
+    });
+
+    // ---- initial load ----
+    RebindProductionVersionList();
+    RebindTestVersionList();
+    RebindAllVersionList();
+});
